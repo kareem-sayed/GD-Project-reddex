@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   },
   image: { width: width * 0.7, height: width * 0.7, marginBottom: 16 },
   description: { fontSize: 16, textAlign: "center", color: "#555" },
-  dotsContainer: { flexDirection: "row", gap: 8, marginBottom: 30, marginTop: 20 },
+  dotsContainer: { flexDirection: "row", gap: 8, marginBottom: 40, marginTop: 10 },
   dot: { width: 6, height: 6, borderRadius: 6 },
   activeDot: {  width: 8, height: 6,backgroundColor: "#7D0A0A" },
   inactiveDot: { backgroundColor: "#C8C8C8" },
@@ -104,8 +104,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#7D0A0A",
     width: 358, // من Figma
     height: 42, // من Figma
+    paddingVertical: 6,
+    paddingHorizontal: 20,
     borderRadius: 16,
-    borderRadius: 25,
+    
     alignItems: "center",
   },
   nextText: { color: "#fff", fontSize: 18, fontWeight: "bold" },

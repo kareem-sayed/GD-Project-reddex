@@ -12,7 +12,7 @@ export default function ReadyScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>السابق</Text>
         </TouchableOpacity>
-        <View /> {/* لا يوجد Skip في الشاشة الأخيرة */}
+        <View />  
       </View>
 
       {/* Content Box */}
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   backText: { color: "#7D0A0A", fontSize: 16, fontWeight: "600" },
-  skipText: { color: "#7D0A0A", fontSize: 16, fontWeight: "600" },
+  
   contentBox: {
     width: 358,        // من Figma
     height: 440,       // من Figma
@@ -78,17 +78,17 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: "bold", marginBottom: 16, textAlign: "center" },
   image: { width: width * 0.7, height: width * 0.7, marginBottom: 16 },
   description: { fontSize: 16, textAlign: "center", color: "#555" },
-  dotsContainer: { flexDirection: "row", gap: 8, marginBottom: 30 },
+  dotsContainer: { flexDirection: "row", gap: 8, marginBottom: 50 },
   dot: { width: 6, height: 6, borderRadius: 6 },
   activeDot: {width: 8, height: 6, backgroundColor: "#7D0A0A" },
   inactiveDot: { backgroundColor: "#C8C8C8" },
   nextButton: {
     backgroundColor: "#7D0A0A",
-    paddingVertical: 12,
-    paddingHorizontal: 40,
+    paddingVertical: 6,
+    paddingHorizontal: 20,
      width: 358, // من Figma
     height: 42, // من Figma
-    borderRadius: 25,
+    borderRadius: 16,
     alignItems: "center"
   },
   nextText: { color: "#fff", fontSize: 18, fontWeight: "bold" },

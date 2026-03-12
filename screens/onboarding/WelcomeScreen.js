@@ -86,7 +86,11 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end", // تخطي على اليسار في RTL
     width: "100%",
   },
-  skipText: { color: "#7D0A0A", fontSize: 16, fontWeight: "600" },
+  skipText: { 
+    color: "#7D0A0A",
+    fontSize: 16,
+    fontWeight: "600"
+  },
   contentBox: {
     width: 358, // من Figma
     height: 440, // من Figma
@@ -100,8 +104,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   image: { width: width * 0.7, height: width * 0.7, marginBottom: 16 },
+
   description: { fontSize: 16, textAlign: "center", color: "#555" },
-  dotsContainer: { flexDirection: "row", gap: 8, marginBottom: 30 },
+  dotsContainer: { flexDirection: "row", gap: 8, marginBottom: 40 ,marginTop:10},
   dot: { width: 6, height: 6, borderRadius: 6 },
   activeDot: { width: 8, height: 6, backgroundColor: "#7D0A0A" },
   inactiveDot: { backgroundColor: "#C8C8C8" },
