@@ -11,7 +11,11 @@ import RoleSelectScreen from "./screens/onboarding/RoleSelectScreen";
 import PatientSignupFlow from './screens/auth/patient/PatientSignupFlow';
 import SignupSuccessScreen from './screens/auth/patient/SignupSuccess';
 import HomeScreen from './screens/auth/patient/HomeScreen';
-import DoctorSignupFlow from "./screens/auth/doctor/Doctorsignupflow";
+import DoctorSignupFlow from "./screens/auth/doctor/doctor-signup/Doctorsignupflow";
+
+import { I18nManager } from "react-native";
+I18nManager.forceRTL(true);
+I18nManager.allowRTL(true); // يفضل أيضاً تفعيل هذا للسّماح بـ RTL
 
 const Stack = createNativeStackNavigator();
 

@@ -209,9 +209,10 @@ const styles = StyleSheet.create({
     marginBottom: 65,
   },
   startButtonDisabled: {
-    backgroundColor: "#D1D5DB",
-    shadowOpacity: 0.1,
-    elevation: 2,
+    backgroundColor: "#7D0A0A",
+    // shadowOpacity: 0.1,
+    // elevation: 2,
+    opacity: 0.2,
   },
   startText: {
     color: "#FFFFFF",
@@ -220,6 +221,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   startTextDisabled: {
-    color: "#9CA3AF",
+    color: "#FFFFFF",
   },
 });
