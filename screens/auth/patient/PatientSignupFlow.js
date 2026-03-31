@@ -5,12 +5,11 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   ScrollView,
   I18nManager,
 } from "react-native";
-
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Force RTL for Arabic
 // I18nManager.forceRTL(true);
@@ -139,6 +138,7 @@ export default function PatientSignupFlow({ navigation }) {
             <Step1_BasicInfo
               formData={formData}
               updateFormData={updateFormData}
+              navigation={navigation}
             />
           </>
         )}
@@ -163,42 +163,48 @@ export default function PatientSignupFlow({ navigation }) {
             <Step4_Help formData={formData} updateFormData={updateFormData} />
           </>
         )}
+
+        {/* Bottom Button */}
+        <View style={styles.bottomSection}>
+          <TouchableOpacity
+            disabled={!isStepValid()}
+            style={[
+              styles.nextButton,
+              !isStepValid() && styles.nextButtonDisabled,
+            ]}
+            onPress={handleNext}
+            activeOpacity={0.85}
+          >
+            <Text
+              style={[styles.nextText, !isStepValid() && styles.nextTextDisabled]}
+            >
+              {getButtonLabel()}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
-      {/* Bottom Button */}
-      <View style={styles.bottomSection}>
-        <TouchableOpacity
-          disabled={!isStepValid()}
-          style={[
-            styles.nextButton,
-            !isStepValid() && styles.nextButtonDisabled,
-          ]}
-          onPress={handleNext}
-          activeOpacity={0.85}
-        >
-          <Text
-            style={[styles.nextText, !isStepValid() && styles.nextTextDisabled]}
-          >
-            {getButtonLabel()}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      
     </SafeAreaView>
   );
 }
 
 // ─── SCREEN 1: Basic Info (انشئ حساب جديد) ─────────────────────────────────
-function Step1_BasicInfo({ formData, updateFormData }) {
+function Step1_BasicInfo({ formData, updateFormData, navigation }) {
   return (
-    <View style={styles.stepContainer}>
+    <SafeAreaView style={styles.stepContainer}>
       <Text style={styles.stepTitle}>انشئ حساب جديد</Text>
       <Text style={styles.stepSubtitle}>
         سجل بياناتك الأساسية علشان تعمل حسابك وتقدر تستخدم كل مميزات التطبيق.
       </Text>
 
-      <Text style={styles.noteText}>
-        عندك حساب بالفعل؟ <Text style={styles.linkText}>تسجيل دخول</Text>
-      </Text>
+      <TouchableOpacity
+      onPress={() => navigation.replace("Registerpage")}
+        >
+        <Text style={styles.noteText}>
+          عندك حساب بالفعل؟ <Text style={styles.linkText}>تسجيل دخول</Text>
+        </Text>
+      </TouchableOpacity>
 
       <View style={styles.inputsContainer}>
         <InputField
@@ -235,7 +241,8 @@ function Step1_BasicInfo({ formData, updateFormData }) {
         />
         <Text style={styles.helperText}>لازم تكون نفس كلمة السر</Text>
       </View>
-    </View>
+      
+    </SafeAreaView>
   );
 }
 
@@ -490,6 +497,7 @@ const styles = StyleSheet.create({
   // ── Step Container ──
   stepContainer: {
     marginTop: 20,
+    marginBottom: 30,
   },
   stepTitle: {
     fontSize: 24,
@@ -655,11 +663,8 @@ const styles = StyleSheet.create({
 
   // ── Bottom Button ──
   bottomSection: {
-    position: "absolute",
-    bottom: 110,
-    left: 16,
-    right: 16,
-    paddingVertical: 20,
+    
+  
     backgroundColor: "#FAF7F2",
   },
   nextButton: {

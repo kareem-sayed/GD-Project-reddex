@@ -31,10 +31,10 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   label: {
-    fontSize: 15,
+    fontSize: 18,
     fontWeight: "600",
     color: "#1A1A1A",
-    textAlign: "right",
+    
   },
   input: {
     height: 52,
