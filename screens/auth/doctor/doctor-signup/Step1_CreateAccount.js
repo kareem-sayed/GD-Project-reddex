@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  SafeAreaView,
   View,
   Text,
   TextInput,
@@ -8,15 +7,19 @@ import {
   StyleSheet,
   I18nManager,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { SafeAreaView }   from "react-native-safe-area-context";
 import SignupProgressBar from "../../../components/SignupProgressBar";
-// Force RTL for Arabic
+
 I18nManager.forceRTL(true);
 
 export default function Step1_BasicInfo({
   formData,
   updateFormData,
   nextStep,
+  
 }) {
+  const navigation = useNavigation();
   const isValid =
     formData.email &&
     formData.phoneNumber &&
@@ -43,10 +46,12 @@ export default function Step1_BasicInfo({
         <Text style={styles.subtitle}>
           دخل بياناتك الأساسية علشان نعمل حسابك كدكتور.
         </Text>
-        <Text style={styles.noteText}>
-          {"عندك حساب بالفعل؟\u00A0"}
-          <Text style={styles.linkText}>تسجيل دخول</Text>
-        </Text>
+        <TouchableOpacity onPress={() => navigation.replace("doctorLogin")}>
+          <Text style={styles.noteText}>
+            {"عندك حساب بالفعل؟\u00A0"}
+              <Text style={styles.linkText}>تسجيل دخول</Text>
+          </Text>
+        </TouchableOpacity>
         <View style={styles.inputs}>
           <InputField
             label="البريد الإلكتروني"

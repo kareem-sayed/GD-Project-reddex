@@ -5,9 +5,9 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
 } from "react-native";
+import { SafeAreaView }   from "react-native-safe-area-context";
 
 export default function SignupSuccessScreen({ navigation }) {
   return (
@@ -34,7 +34,7 @@ export default function SignupSuccessScreen({ navigation }) {
       <View style={styles.bottomSection}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.replace("Home")}
+          onPress={() => navigation.replace("MainTabs")}
           activeOpacity={0.85}
         >
           <Text style={styles.buttonText}>ابدأ الاستخدام</Text>

@@ -12,7 +12,10 @@ import PatientSignupFlow from './screens/auth/patient/PatientSignupFlow';
 import SignupSuccessScreen from './screens/auth/patient/SignupSuccess';
 import HomeScreen from './screens/auth/patient/HomeScreen';
 import DoctorSignupFlow from "./screens/auth/doctor/doctor-signup/Doctorsignupflow";
+import DoctorLogin from "./screens/auth/doctor/doctorRegister/doctorResiter";
 import Registerpage from "./screens/auth/patient/patientRegister/Registerpage";
+import ResetPassword from "./screens/auth/patient/resetPassword/resetPassword";
+import TabsNavigation from "./navigation/TabsNavigation";
 import { I18nManager } from "react-native";
 I18nManager.forceRTL(true);
 I18nManager.allowRTL(true); // يفضل أيضاً تفعيل هذا للسّماح بـ RTL
@@ -31,9 +34,15 @@ export default function App() {
         <Stack.Screen name="RoleSelectScreen" component={RoleSelectScreen} />
         <Stack.Screen name="PatientSignupFlow" component={PatientSignupFlow} />
         <Stack.Screen name="Registerpage" component={Registerpage} />
+        <Stack.Screen name="ResetPassword" component={ResetPassword} />
         <Stack.Screen name="SignupSuccess" component={SignupSuccessScreen} />
-        <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="DoctorSignupFlow" component={DoctorSignupFlow} />
+        <Stack.Screen name="doctorLogin" component={DoctorLogin} />
+        <Stack.Screen 
+          name="MainTabs" 
+          component={TabsNavigation}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

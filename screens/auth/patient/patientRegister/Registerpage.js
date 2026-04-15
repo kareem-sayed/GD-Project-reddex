@@ -7,10 +7,8 @@ import CustomButton from "../../../components/CustomButton";
 export default function Registerpage({ navigation }) {
 
   const [formData, setFormData] = useState({
-    mail: "",
-    phoneNumber: "",
+    mail: "", 
     password: "",
-    confirmPassword: "",
   });
 
   const validateForm = () => {
@@ -31,7 +29,7 @@ export default function Registerpage({ navigation }) {
     }
 
     
-    navigation.replace("SignupSuccess");
+    navigation.replace("MainTabs");
   };
 
   const isValid = validateForm();
@@ -57,7 +55,6 @@ export default function Registerpage({ navigation }) {
           }
           keyboardType="email-address"
         />
-
         <InputField
           label="كلمة السر"
           placeholder="كلمة السر"
@@ -67,12 +64,20 @@ export default function Registerpage({ navigation }) {
           }
           secureTextEntry
         />
+        <TouchableOpacity onPress={() => navigation.navigate("ResetPassword")}>
+          <Text style={styles.helperText}> هل نسيت كلمة المرور؟ </Text>
+        </TouchableOpacity>
 
-        <CustomButton
-          title="تسجيل دخول"
-          onPress={handleLogin}
-          disabled={!isValid}
-        />
+        <View  style={styles.buttonBox}>
+          <CustomButton
+            title="تسجيل دخول"
+            onPress={handleLogin}
+            disabled={!isValid}
+          />
+        </View>
+
+        
+        
       </View>
     </SafeAreaView>
   );
@@ -82,11 +87,13 @@ export default function Registerpage({ navigation }) {
 
 const styles = StyleSheet.create({
   container: {
+      position: "relative",
       flex: 1,
       alignItems: "right",
       paddingHorizontal: 20, // x:16 من Figma
       paddingTop: 40,       // y:150 من Figma
       backgroundColor: "#FAF7F2",
+      height: "100%",
     },
     stepTitle: {
     fontSize: 24,
@@ -120,5 +127,17 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#333",
     textAlign: "right",
+  },
+
+  helperText: {
+    fontSize: 16,
+    color: "#5b5a5a",
+    marginTop: 7,
+    marginBottom: 8,
+    writingDirection: "rtl",
+  },
+  buttonBox: {
+    
+  
   },
 })

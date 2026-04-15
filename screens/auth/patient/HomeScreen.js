@@ -1,10 +1,11 @@
 // HomeScreen.js
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView ,StatusBar} from "react-native";
 
 export default function HomeScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FAF7F2" />
       <Text style={styles.title}>أهلاً بيك في Home Screen</Text>
 
       <Text style={styles.subtitle}>ده مجرد اختبار للصفحة</Text>
