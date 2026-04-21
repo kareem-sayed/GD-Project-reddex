@@ -10,7 +10,7 @@ import RoleSelectScreen from "./screens/onboarding/RoleSelectScreen";
 
 import PatientSignupFlow from './screens/auth/patient/PatientSignupFlow';
 import SignupSuccessScreen from './screens/auth/patient/SignupSuccess';
-import HomeScreen from './screens/auth/patient/HomeScreen';
+import HomeScreen from './screens/auth/patient/HomeScreens/HomeScreen';
 import DoctorSignupFlow from "./screens/auth/doctor/doctor-signup/Doctorsignupflow";
 import DoctorLogin from "./screens/auth/doctor/doctorRegister/doctorResiter";
 import Registerpage from "./screens/auth/patient/patientRegister/Registerpage";
