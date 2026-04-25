@@ -11,8 +11,13 @@ import RoleSelectScreen from "./screens/onboarding/RoleSelectScreen";
 import PatientSignupFlow from './screens/auth/patient/PatientSignupFlow';
 import SignupSuccessScreen from './screens/auth/patient/SignupSuccess';
 import HomeScreen from './screens/auth/patient/HomeScreens/HomeScreen';
+
 import DoctorSignupFlow from "./screens/auth/doctor/doctor-signup/Doctorsignupflow";
+import SignupDoneScreen from "./screens/auth/doctor/SignupDone";
 import DoctorLogin from "./screens/auth/doctor/doctorRegister/doctorResiter";
+import DoctorHomeScreen from "./screens/auth/doctor/home/DoctorHomeScreen";
+import NotificationsScreen from "./screens/auth/doctor/home/NotificationsScreen";
+
 import Registerpage from "./screens/auth/patient/patientRegister/Registerpage";
 import ResetPassword from "./screens/auth/patient/resetPassword/resetPassword";
 import TabsNavigation from "./navigation/TabsNavigation";
@@ -37,7 +42,11 @@ export default function App() {
         <Stack.Screen name="ResetPassword" component={ResetPassword} />
         <Stack.Screen name="SignupSuccess" component={SignupSuccessScreen} />
         <Stack.Screen name="DoctorSignupFlow" component={DoctorSignupFlow} />
+        <Stack.Screen name="signupDone" component={SignupDoneScreen} />
         <Stack.Screen name="doctorLogin" component={DoctorLogin} />
+        <Stack.Screen name="DoctorHomeScreen" component={DoctorHomeScreen} />
+        <Stack.Screen name="NotificationsScreen" component={NotificationsScreen} options={{ headerShown: false }} />
+        
         <Stack.Screen 
           name="MainTabs" 
           component={TabsNavigation}
