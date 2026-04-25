@@ -56,7 +56,7 @@ export default function Step5_Confirm({ formData, prevStep, navigation }) {
             style={styles.nextButton}
             onPress={() => navigation.navigate("signupDone")}
           >
-            <Text style={styles.nextText}>تأكيد</Text>
+            <Text style={styles.nextText}>انشاء حساب</Text>
           </TouchableOpacity>
 
           {/* زر السابق */}

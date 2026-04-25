@@ -11,6 +11,7 @@ import RoleSelectScreen from "./screens/onboarding/RoleSelectScreen";
 import PatientSignupFlow from './screens/auth/patient/PatientSignupFlow';
 import SignupSuccessScreen from './screens/auth/patient/SignupSuccess';
 import HomeScreen from './screens/auth/patient/HomeScreens/HomeScreen';
+import SearchScreen from "./screens/auth/patient/SearchScreen";
 
 import DoctorSignupFlow from "./screens/auth/doctor/doctor-signup/Doctorsignupflow";
 import SignupDoneScreen from "./screens/auth/doctor/SignupDone";
@@ -49,6 +50,7 @@ export default function App() {
         <Stack.Screen name="PatientSignupFlow" component={PatientSignupFlow} />
         <Stack.Screen name="Registerpage" component={Registerpage} />
         <Stack.Screen name="ResetPassword" component={ResetPassword} />
+        <Stack.Screen name="SearchScreen" component={SearchScreen} />
         <Stack.Screen name="SignupSuccess" component={SignupSuccessScreen} />
         <Stack.Screen name="DoctorSignupFlow" component={DoctorSignupFlow} />
         <Stack.Screen name="signupDone" component={SignupDoneScreen} />
