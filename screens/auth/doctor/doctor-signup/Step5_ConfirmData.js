@@ -8,8 +8,13 @@ import {
   ScrollView,
 } from "react-native";
 import SignupProgressBar from "../../../components/SignupProgressBar";
+<<<<<<< HEAD
 
 export default function Step5_Confirm({ formData, prevStep, navigation }) {
+=======
+ 
+export default function Step5_Confirm({ formData, prevStep  }) {
+>>>>>>> 0364f2b ( add doctorTaps)
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -45,13 +50,13 @@ export default function Step5_Confirm({ formData, prevStep, navigation }) {
         {/* Buttons */}
         <View>
           <View style={styles.buttons}>
+
             <TouchableOpacity
               style={styles.nextButton}
               onPress={() => navigation.navigate("signupDone")}
             >
-              <Text style={styles.nextText}>إنشاء حساب</Text>
-            </TouchableOpacity>
-          </View>
+
+           
 
           <View style={styles.buttons}>
             <TouchableOpacity style={styles.prevButton} onPress={prevStep}>

@@ -25,6 +25,7 @@ import TabsNavigation from "./navigation/TabsNavigation";
 import EditAccount from "./screens/auth/patient/EditAccount/EditAccount";
 import ProfileSettings from "./screens/auth/patient/ProfileSettings/profileSettings";
 
+import DoctorTaps from "./navigation/DoctorTaps"
 //components
 
 
@@ -60,6 +61,12 @@ export default function App() {
           component={TabsNavigation}
           options={{ headerShown: false }}
         />
+        <Stack.Screen 
+          name="DoctorTaps" 
+          component={DoctorTaps}
+          options={{ headerShown: false }}
+        />
+
         <Stack.Screen name="EditAccount" component={EditAccount} />
         <Stack.Screen name="profileSettings" component={ProfileSettings} />
       </Stack.Navigator>
