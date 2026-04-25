@@ -19,9 +19,17 @@ import DoctorHomeScreen from "./screens/auth/doctor/home/DoctorHomeScreen";
 import NotificationsScreen from "./screens/auth/doctor/home/NotificationsScreen";
 
 import Registerpage from "./screens/auth/patient/patientRegister/Registerpage";
+
 import ResetPassword from "./screens/auth/patient/resetPassword/resetPassword";
 import TabsNavigation from "./navigation/TabsNavigation";
+import EditAccount from "./screens/auth/patient/EditAccount/EditAccount";
+import ProfileSettings from "./screens/auth/patient/ProfileSettings/profileSettings";
+
+//components
+
+
 import { I18nManager } from "react-native";
+
 I18nManager.forceRTL(true);
 I18nManager.allowRTL(true); // يفضل أيضاً تفعيل هذا للسّماح بـ RTL
 
@@ -52,6 +60,8 @@ export default function App() {
           component={TabsNavigation}
           options={{ headerShown: false }}
         />
+        <Stack.Screen name="EditAccount" component={EditAccount} />
+        <Stack.Screen name="profileSettings" component={ProfileSettings} />
       </Stack.Navigator>
     </NavigationContainer>
   );
