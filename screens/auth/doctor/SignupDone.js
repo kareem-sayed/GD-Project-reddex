@@ -27,7 +27,7 @@ export default function UnderReviewScreen({ navigation }) {
       <View style={styles.bottomSection}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.replace("DoctorHomeScreen")}
+          onPress={() => navigation.replace("DoctorTaps")}
         >
           <Text style={styles.buttonText}>فهمت</Text>
         </TouchableOpacity>

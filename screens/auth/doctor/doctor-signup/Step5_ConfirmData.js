@@ -8,16 +8,13 @@ import {
   ScrollView,
 } from "react-native";
 import SignupProgressBar from "../../../components/SignupProgressBar";
-<<<<<<< HEAD
+
 
 export default function Step5_Confirm({ formData, prevStep, navigation }) {
-=======
- 
-export default function Step5_Confirm({ formData, prevStep  }) {
->>>>>>> 0364f2b ( add doctorTaps)
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
+        
         <SignupProgressBar currentStep={5} />
 
         <Text style={styles.title}>تأكيد البيانات</Text>
@@ -42,28 +39,36 @@ export default function Step5_Confirm({ formData, prevStep  }) {
         <View style={styles.section}>
           <Text style={styles.label}>بيانات العيادة :</Text>
 
-          <Text style={styles.value}>الاسم : {formData.clinicName}</Text>
+          <Text style={styles.value}>
+            الاسم : {formData.clinicName}
+          </Text>
 
-          <Text style={styles.value}>العنوان : {formData.clinicAddress}</Text>
+          <Text style={styles.value}>
+            العنوان : {formData.clinicAddress}
+          </Text>
         </View>
 
         {/* Buttons */}
-        <View>
-          <View style={styles.buttons}>
+        <View style={styles.buttons}>
+          
+          {/* زر التأكيد */}
+          <TouchableOpacity
+            style={styles.nextButton}
+            onPress={() => navigation.navigate("signupDone")}
+          >
+            <Text style={styles.nextText}>تأكيد</Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.nextButton}
-              onPress={() => navigation.navigate("signupDone")}
-            >
+          {/* زر السابق */}
+          <TouchableOpacity
+            style={styles.prevButton}
+            onPress={prevStep}
+          >
+            <Text style={styles.prevText}>السابق</Text>
+          </TouchableOpacity>
 
-           
-
-          <View style={styles.buttons}>
-            <TouchableOpacity style={styles.prevButton} onPress={prevStep}>
-              <Text style={styles.prevText}>السابق</Text>
-            </TouchableOpacity>
-          </View>
         </View>
+
       </View>
     </SafeAreaView>
   );
