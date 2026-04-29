@@ -25,7 +25,13 @@ import TabsNavigation from "./navigation/TabsNavigation";
 import EditAccount from "./screens/auth/patient/EditAccount/EditAccount";
 import ProfileSettings from "./screens/auth/patient/ProfileSettings/profileSettings";
 
+import UploadFileScreen from "./screens/auth/patient/InsertAnalysis/UploadFileScreen";
+import ManualInputScreen from "./screens/auth/patient/InsertAnalysis/ManualInputScreen";
+
+import ChatScreen from "./screens/auth/patient/chatScreen/ChatScreen";
+
 import DoctorTaps from "./navigation/DoctorTaps"
+
 //components
 
 
@@ -56,6 +62,12 @@ export default function App() {
         <Stack.Screen name="DoctorHomeScreen" component={DoctorHomeScreen} />
         <Stack.Screen name="NotificationsScreen" component={NotificationsScreen} options={{ headerShown: false }} />
         
+        {/* analysisNAVigation */}
+        <Stack.Screen name="UploadFileScreen" component={UploadFileScreen} />
+        <Stack.Screen name="ManualInputScreen" component={ManualInputScreen} />
+        {/* chatBot */}
+        <Stack.Screen name="ChatScreen" component={ChatScreen} />
+
         <Stack.Screen 
           name="MainTabs" 
           component={TabsNavigation}

@@ -25,8 +25,8 @@ export default function HomeScreen({ navigation }) {
 
         <View style={styles.containeritem}> 
           <Item icon="calendar-outline" title="تابع مع  دكتور " nav="Search" />
-          <Item icon="flask-outline" title="افهم تحاليلك" nav="Search" />
-          <Item icon="medical-outline" title="تشخيص الأعراض" nav="Search"/>
+          <Item icon="flask-outline" title="افهم تحاليلك" nav="UploadFileScreen" />
+          <Item icon="medical-outline" title="تشخيص الأعراض" nav="ChatScreen"/>
         </View>
 
         <View style={styles.containerImage}>
@@ -130,6 +130,7 @@ const styles = StyleSheet.create({
   },
   item: {
     alignItems: "center",
+    
     width: "32%",
     backgroundColor: "#FDFCF8",
     borderRadius: 10,
@@ -140,6 +141,7 @@ const styles = StyleSheet.create({
   circle: {
     width: 60,
     height: 60,
+    marginLeft: 10,
     borderRadius: 30,
     backgroundColor: "#EDE4D8",
     justifyContent: "center",
