@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { View,  StatusBar, ScrollView, Alert } from "react-native";
+import { View, StatusBar, ScrollView, Alert } from "react-native";
 import { I18nManager } from "react-native";
-import { SafeAreaView }   from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import * as DocumentPicker from "expo-document-picker";
-I18nManager.forceRTL(true); 
+I18nManager.forceRTL(true);
 
 import Step1_BasicInfo from "./Step1_CreateAccount";
 import Step2_ProfessionalInfo from "./Step2_ProfessionalData";
@@ -12,7 +12,7 @@ import Step4_Documents from "./Step4_VerifyAccount";
 import Step5_Confirm from "./Step5_ConfirmData";
 
 export default function DoctorSignupFlow({ navigation }) {
-  const [currentStep, setCurrentStep] = useState(1); 
+  const [currentStep, setCurrentStep] = useState(1);
   //   Step1
   const [formData, setFormData] = useState({
     fullName: "",
@@ -71,7 +71,6 @@ export default function DoctorSignupFlow({ navigation }) {
             formData={formData}
             updateFormData={updateFormData}
             nextStep={nextStep}
-          
           />
         )}
         ّ
