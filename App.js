@@ -43,8 +43,6 @@ import AccountSettings from "./screens/auth/doctor/profile/AccountSettings";
 import HelpScreen from "./screens/auth/doctor/profile/HelpScreen";
 // Navigation
 import TabsNavigation from "./navigation/TabsNavigation";
-import EditAccount from "./screens/auth/patient/EditAccount/EditAccount";
-import ProfileSettings from "./screens/auth/patient/ProfileSettings/profileSettings";
 
 import DoctorTaps from "./navigation/DoctorTaps"
 //components
@@ -75,11 +73,7 @@ export default function App() {
         <Stack.Screen name="ResetPassword" component={ResetPassword} />
         {/* Patient Home Screens */}
         <Stack.Screen name="HomeScreen" component={HomeScreen} />
-        <Stack.Screen
-          name="NotificationsScreen"
-          component={NotificationsScreen}
-          options={{ headerShown: false }}
-        />
+        
         {/* Patient Search Screens */}
         <Stack.Screen name="SearchScreen" component={SearchScreen} />
         {/* Patient Profile Screens */}
@@ -92,6 +86,7 @@ export default function App() {
         {/* Doctor Home Screens */}
         <Stack.Screen name="DoctorHomeScreen" component={DoctorHomeScreen} />
         <Stack.Screen name="NotificationsScreen" component={NotificationsScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="AllRequestsScreen" component={AllRequestsScreen} options={{ headerShown: false }} />
         
         <Stack.Screen 
           name="MainTabs" 
@@ -103,6 +98,17 @@ export default function App() {
           component={DoctorTaps}
           options={{ headerShown: false }}
         />
+        {/* Doctor Patients Screens */}
+        <Stack.Screen name="PatientsScreen" component={PatientsScreen} />
+        <Stack.Screen name="CriticalCondition" component={CriticalCondition} />
+        <Stack.Screen name="StableCondition" component={StableCondition} />
+        <Stack.Screen name="FollowUpScreen" component={FollowUpScreen} />
+        <Stack.Screen name="MedicationsScreen" component={MedicationsScreen} />
+        {/* Doctor Profile Screens */}
+        <Stack.Screen name="DoctorProfileScreen" component={DoctorProfileScreen} />
+        <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
+        <Stack.Screen name="AccountSettings" component={AccountSettings} />
+        <Stack.Screen name="HelpScreen" component={HelpScreen} /> 
       </Stack.Navigator>
     </NavigationContainer>
   );
