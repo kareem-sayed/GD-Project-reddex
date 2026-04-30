@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   StatusBar,
   I18nManager,
+  ScrollView,
 } from "react-native";
 
 // Force RTL for Arabic
@@ -19,87 +20,94 @@ export default function RoleSelectScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FAF7F2" />
       <View style={styles.container}>
-        {/* ── Header Section ── */}
-        <View style={styles.headerSection}>
-          <Text style={styles.title}>اختار دورك</Text>
-          <Text style={styles.subtitle}>
-            علشان نقدر نجهزلك تجربة مناسبة ليك، اختر إذا كنت مريض أو دكتور.
-          </Text>
-        </View>
-
-        {/* ── Role Buttons ── */}
-        <View style={styles.rolesContainer}>
-          {/* Patient Button */}
-          <View style={styles.roleWrapper}>
-            <TouchableOpacity
-              style={[
-                styles.roleButton,
-                role === "patient" && styles.roleButtonActive,
-              ]}
-              onPress={() => setRole("patient")}
-              activeOpacity={0.8}
-            >
-              <Text
-                style={[
-                  styles.roleText,
-                  role === "patient" && styles.roleTextActive,
-                ]}
-              >
-                أنا مريض
-              </Text>
-            </TouchableOpacity>
-            {role === "patient" && (
-              <Text style={styles.description}>
-                تابع تحاليلك، واعرف حالتك، وخد نصايح مبنية على بياناتك.
-              </Text>
-            )}
-          </View>
-
-          {/* Doctor Button */}
-          <View style={styles.roleWrapper}>
-            <TouchableOpacity
-              style={[
-                styles.roleButton,
-                role === "doctor" && styles.roleButtonActive,
-              ]}
-              onPress={() => setRole("doctor")}
-              activeOpacity={0.8}
-            >
-              <Text
-                style={[
-                  styles.roleText,
-                  role === "doctor" && styles.roleTextActive,
-                ]}
-              >
-                أنا دكتور
-              </Text>
-            </TouchableOpacity>
-            {role === "doctor" && (
-              <Text style={styles.description}>
-                راجع بيانات المرضى بسهولة، وتابع تطوّر حالتهم في أي وقت.
-              </Text>
-            )}
-          </View>
-        </View>
-
-        {/* ── Start Button ── */}
-        <View style={styles.bottomSection}>
-          <TouchableOpacity
-            disabled={!role}
-            style={[styles.startButton, !role && styles.startButtonDisabled]}
-            // onPress={() => navigation.replace("Home")}
-            onPress={() =>
-              navigation.replace(
-                role === "patient" ? "PatientSignupFlow" : "DoctorSignupFlow",
-              )
-            }
-            activeOpacity={0.85}
-          >
-            <Text style={[styles.startText, !role && styles.startTextDisabled]}>
-              ابدأ
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {/* ── Header Section ── */}
+          <View style={styles.headerSection}>
+            <Text style={styles.title}>اختار دورك</Text>
+            <Text style={styles.subtitle}>
+              علشان نقدر نجهزلك تجربة مناسبة ليك، اختر إذا كنت مريض أو دكتور.
             </Text>
-          </TouchableOpacity>
-        </View>
+          </View>
+
+          {/* ── Role Buttons ── */}
+          <View style={styles.rolesContainer}>
+            {/* Patient Button */}
+            <View style={styles.roleWrapper}>
+              <TouchableOpacity
+                style={[
+                  styles.roleButton,
+                  role === "patient" && styles.roleButtonActive,
+                ]}
+                onPress={() => setRole("patient")}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[
+                    styles.roleText,
+                    role === "patient" && styles.roleTextActive,
+                  ]}
+                >
+                  أنا مريض
+                </Text>
+              </TouchableOpacity>
+              {role === "patient" && (
+                <Text style={styles.description}>
+                  تابع تحاليلك، واعرف حالتك، وخد نصايح مبنية على بياناتك.
+                </Text>
+              )}
+            </View>
+
+            {/* Doctor Button */}
+            <View style={styles.roleWrapper}>
+              <TouchableOpacity
+                style={[
+                  styles.roleButton,
+                  role === "doctor" && styles.roleButtonActive,
+                ]}
+                onPress={() => setRole("doctor")}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[
+                    styles.roleText,
+                    role === "doctor" && styles.roleTextActive,
+                  ]}
+                >
+                  أنا دكتور
+                </Text>
+              </TouchableOpacity>
+              {role === "doctor" && (
+                <Text style={styles.description}>
+                  راجع بيانات المرضى بسهولة، وتابع تطوّر حالتهم في أي وقت.
+                </Text>
+              )}
+            </View>
+          </View>
+
+          {/* ── Start Button ── */}
+          <View style={styles.bottomSection}>
+            <TouchableOpacity
+              disabled={!role}
+              style={[styles.startButton, !role && styles.startButtonDisabled]}
+              // onPress={() => navigation.replace("Home")}
+              onPress={() =>
+                navigation.replace(
+                  role === "patient" ? "PatientSignupFlow" : "DoctorSignupFlow",
+                )
+              }
+              activeOpacity={0.85}
+            >
+              <Text
+                style={[styles.startText, !role && styles.startTextDisabled]}
+              >
+                ابدأ
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </View>
     </SafeAreaView>
   );
@@ -193,7 +201,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 16,
     right: 16,
-    top: 703, // لو عايزة نفس فيجما حرفيًا
+    top: 605, 
   },
   startButton: {
     height: 56,

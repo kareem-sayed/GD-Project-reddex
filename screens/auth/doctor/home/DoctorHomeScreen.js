@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -11,9 +11,44 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Platform } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function DoctorHomeScreen({ navigation }) {
-  // كارد الإحصائيات العلوية
+  // 1. partient requests - static data for now
+  const [pendingRequests, setPendingRequests] = useState([
+    {
+      id: "1",
+      name: "أحمد خالد",
+      condition: "أنيميا البحر المتوسط",
+      image: require("../../../../assets/images/profile/patient1.png"),
+    },
+    {
+      id: "2",
+      name: "سارة وائل",
+      condition: "حمى البحر المتوسط",
+      image: require("../../../../assets/images/profile/patient1.png"),
+    },
+    {
+      id: "3",
+      name: "متولي عبد الخالق",
+      condition: "لوكيميا",
+      image: require("../../../../assets/images/profile/patient1.png"),
+    },
+    {
+      id: "4",
+      name: "يوسف علي",
+      condition: "لوكيميا",
+      image: require("../../../../assets/images/profile/patient1.png"),
+    },
+  ]);
+
+  // add patient to follow up list
+  const handleAddPatient = (id) => {
+    setPendingRequests((prev) => prev.filter((p) => p.id !== id));
+    // api call to accept the request would go here
+    alert("تم قبول طلب المتابعة بنجاح");
+  };
+  // stat card component
   const StatCard = ({ count, label, color }) => (
     <View style={styles.statCard}>
       <Text
@@ -49,24 +84,33 @@ export default function DoctorHomeScreen({ navigation }) {
     </View>
   );
 
-  // كارد المريض في قائمة المتابعة
-  const PatientItem = ({ name, condition, image }) => (
+  // patient item component
+  const PatientItem = ({ item }) => (
     <View style={styles.patientCard}>
+      {/* Icon to add patient */}
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => handleAddPatient(item.id)}
+      >
+        <MaterialCommunityIcons
+          name="account-check-outline"
+          size={22}
+          color="#fff"
+        />
+      </TouchableOpacity>
+
       <View style={styles.patientInfo}>
-        <Image source={image} style={styles.patientAvatar} />
-        <View style={{ alignItems: "flex-end", marginRight: 12 }}>
-          <Text style={styles.patientName}>{name}</Text>
-          <Text style={styles.patientCondition}>{condition}</Text>
+        <Image source={item.image} style={styles.patientAvatar} />
+        <View style={{ marginLeft: 10, alignItems: "flex-start" }}>
+          <Text style={styles.patientName}>{item.name}</Text>
+          <Text style={styles.patientCondition}>{item.condition}</Text>
         </View>
       </View>
-      <TouchableOpacity style={styles.addButton}>
-        <Ionicons name="person-add-outline" size={20} color="#fff" />
-      </TouchableOpacity>
     </View>
   );
   const Header = () => (
     <View style={styles.header}>
-      {/* الشمال: الجرس */}
+      {/* bell icon */}
       <TouchableOpacity
         style={styles.bellContainer}
         onPress={() => navigation.navigate("NotificationsScreen")}
@@ -77,7 +121,7 @@ export default function DoctorHomeScreen({ navigation }) {
         </View>
       </TouchableOpacity>
 
-      {/* اليمين: اسم الدكتور + الصورة */}
+      {/* doctor info + image */}
       <View style={styles.headerRight}>
         <Image
           source={require("../../../../assets/images/profile/patient1.png")}
@@ -90,62 +134,61 @@ export default function DoctorHomeScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FDFCF8" />
-      {/* <ScrollView
-        showsVerticalScrollIndicator={false}
-        style={{ width: "100%" }}
-      > */}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 15, paddingBottom: 20 }}
+        style={{ width: "100%" }}
+        // contentContainerStyle={{ paddingHorizontal: 15, paddingBottom: 20 }}
       >
         <Header />
-        {/* قسم الإحصائيات */}
+        {/* Stats cards section */}
         <View style={styles.statsRow}>
           <StatCard count="3" label="مستقر" color="green" />
           <StatCard count="1" label="يحتاج متابعة" color="yellow" />
           <StatCard count="1" label="حرِج" color="red" />
         </View>
 
-        {/* عنوان قسم طلبات المتابعة */}
-        <View style={styles.sectionHeader}>
-          <TouchableOpacity>
+        {/* Section header for follow-up requests */}
+        <View style={styles.sectionHeader1}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("AllRequestsScreen", {
+                requests: pendingRequests,
+              })
+            }
+          >
             <Text style={styles.seeAllText}>جميع الطلبات</Text>
           </TouchableOpacity>
           <Text style={styles.sectionTitle}>طلبات متابعة</Text>
         </View>
 
-        {/* قائمة المرضى (Static) */}
+        {/* patient list */}
         <View style={styles.listContainer}>
-          <PatientItem
-            name="أحمد خالد"
-            condition="أنيميا البحر المتوسط"
-            image={require("../../../../assets/images/profile/patient1.png")} // غيري المسار للمسار الصحيح عندك
-          />
-          <PatientItem
-            name="سارة وائل"
-            condition="حمى البحر المتوسط"
-            image={require("../../../../assets/images/profile/patient1.png")}
-          />
-          <PatientItem
-            name="متولي عبد الخالق"
-            condition="لوكيميا"
-            image={require("../../../../assets/images/profile/patient1.png")}
-          />
+          {pendingRequests.length > 0 ? (
+            pendingRequests
+              .slice(0, 3)
+              .map((item) => <PatientItem key={item.id} item={item} />)
+          ) : (
+            <Text style={{ textAlign: "center", color: "#999", marginTop: 10 }}>
+              لا توجد طلبات معلقة حالياً
+            </Text>
+          )}
         </View>
 
-        {/* قسم حالات ذات أولوية */}
-        <View style={[styles.sectionHeader, { marginTop: 20 }]}>
+        {/* Priority cases section */}
+        <View
+          style={[styles.sectionHeader2, { alignItems: "row", marginTop: 20 }]}
+        >
           <Text style={styles.sectionTitle}>حالات ذات أولوية</Text>
         </View>
 
-        {/* كارد الحالة الطارئة (عمر فاروق) */}
+        {/* priority card */}
         <View style={styles.priorityCard}>
           <View style={styles.priorityHeader}>
             <View style={styles.priorityTag}>
               <Text style={styles.priorityTagText}>يحتاج متابعة</Text>
             </View>
             <View style={styles.priorityInfo}>
-              <View style={{ alignItems: "flex-end", marginRight: 10 }}>
+              <View style={{ marginLeft: 10 }}>
                 <Text style={styles.patientName}>عمر فاروق</Text>
                 <Text style={styles.lastUpdate}>آخر تحديث : منذ ساعتين</Text>
               </View>
@@ -156,10 +199,10 @@ export default function DoctorHomeScreen({ navigation }) {
             </View>
           </View>
 
-          {/* تنبيه الـ AI */}
+          {/* AI alert */}
           <TouchableOpacity style={styles.aiAlertBox}>
             <Ionicons name="chevron-back" size={18} color="#B00B0B" />
-            <View style={{ alignItems: "flex-end" }}>
+            <View style={{ alignItems: "flex-start" }}>
               <Text style={styles.aiTitle}>تم ملاحظة تغييرات بواسطة AI</Text>
               <Text style={styles.aiSubText}>
                 ارتفاع ملحوظ في نسبة الحديد ومخزون الفيريتين
@@ -171,32 +214,29 @@ export default function DoctorHomeScreen({ navigation }) {
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FDFCF8",
-    // paddingHorizontal: 15,
+    paddingHorizontal: 10,
   },
   header: {
     flexDirection: "row-reverse",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingTop: Platform.OS === "android" ? 15 : 5,
-    marginBottom: 15,
-    backgroundColor: "#fff", // مهم جدًا عشان الظل يبان
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: "#FFF",
 
-    // iOS shadow
+    // iOS
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-
-    // Android shadow
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    // Android
+    elevation: 1,
+    borderBottomWidth: 0.2,
+    borderBottomColor: "#EEE",
   },
   headerRight: {
     flexDirection: "row",
@@ -205,7 +245,7 @@ const styles = StyleSheet.create({
   },
 
   greeting: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "600",
     color: "#333",
   },
@@ -220,14 +260,14 @@ const styles = StyleSheet.create({
     position: "relative",
     backgroundColor: "#FFF",
     padding: 8,
-    borderRadius: 10,
+    borderRadius: 11,
     elevation: 2,
   },
 
   badge: {
     position: "absolute",
     top: -4,
-    right: -4,
+    right: -1,
     backgroundColor: "#B00B0B",
     borderRadius: 8,
     minWidth: 16,
@@ -268,27 +308,35 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 5,
   },
-  sectionHeader: {
+  sectionHeader1: {
+    flexDirection: "row-reverse",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  sectionHeader2: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 15,
   },
   sectionTitle: {
+    textAlign: "row-reverse",
+    writingDirection: "rtl",
     fontSize: 18,
     fontWeight: "bold",
     color: "#000",
   },
   seeAllText: {
     fontSize: 14,
-    color: "#784847",
+    color: "#7D0A0A",
     textDecorationLine: "underline",
   },
   listContainer: {
     gap: 12,
   },
   patientCard: {
-    flexDirection: "row",
+    flexDirection: "row-reverse",
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: "#FFF",
@@ -324,13 +372,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     borderRadius: 20,
     padding: 15,
-    borderRightWidth: 4,
-    borderRightColor: "#B00B0B",
-    elevation: 3,
+    borderLeftWidth: 4,
+    borderLeftColor: "#B00B0B",
+    // elevation: 1,
     marginBottom: 20,
   },
   priorityHeader: {
-    flexDirection: "row",
+    flexDirection: "row-reverse",
     justifyContent: "space-between",
     alignItems: "flex-start",
   },
@@ -339,6 +387,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
+    // flexDirection: "row-reverse",
+    // alignItems: "flex-start",
   },
   priorityTagText: {
     color: "#B00B0B",
@@ -346,7 +396,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   priorityInfo: {
-    flexDirection: "row",
+    flexDirection: "row-reverse",
     alignItems: "center",
   },
   lastUpdate: {
@@ -359,7 +409,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
     borderRadius: 12,
     padding: 12,
-    flexDirection: "row",
+    flexDirection: "row-reverse",
     alignItems: "center",
     justifyContent: "space-between",
   },

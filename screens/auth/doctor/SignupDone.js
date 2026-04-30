@@ -5,7 +5,7 @@ export default function UnderReviewScreen({ navigation }) {
   return (
     <View style={styles.container}>
       {/* Title */}
-      <Text style={styles.title}>حسابك تحت المراجعة</Text>
+      {/* <Text style={styles.title}>حسابك تحت المراجعة</Text> */}
 
       {/* Image */}
       <Image
@@ -38,7 +38,7 @@ export default function UnderReviewScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "#FAF7F2",
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 20,
@@ -52,15 +52,15 @@ const styles = StyleSheet.create({
   },
 
   image: {
-    width: 220,
-    height: 220,
+    width: "100%", // ياخد عرض الشاشة كله
+    aspectRatio: 1, // أو حسب الصورة (مثلاً 1 أو 1.2)
     marginBottom: 20,
   },
 
   description: {
-    fontSize: 16,
+    fontSize: 18,
     textAlign: "center",
-    color: "#444",
+    color: "#000000",
     marginBottom: 10,
   },
 
@@ -72,13 +72,14 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   bottomSection: {
+    width: "100%",
     paddingHorizontal: 16, // X = 16
     paddingBottom: 24,
     backgroundColor: "#FAF7F2",
   },
   button: {
     width: "100%", // بدل 358
-    height: 42, // زي فيجما
+    height: 50, // زي فيجما
     borderRadius: 12,
     backgroundColor: "#7D0A0A",
 
