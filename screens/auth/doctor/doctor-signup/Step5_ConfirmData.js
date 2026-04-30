@@ -122,14 +122,16 @@ const styles = StyleSheet.create({
   },
 
   buttons: {
-    flexDirection: "row",
+    flexDirection: "column",
+    gap: 12,
     justifyContent: "space-between",
-    marginTop: 12,
+    marginTop: 24,
   },
 
   nextButton: {
     flex: 1,
-    marginHorizontal: 8,
+    marginRight: 8,
+    marginLeft: 8,
     height: 56,
     borderRadius: 12,
     backgroundColor: "#7D0A0A",
@@ -145,7 +147,8 @@ const styles = StyleSheet.create({
 
   prevButton: {
     flex: 1,
-    marginHorizontal: 8,
+    marginRight: 8,
+    marginLeft: 8,
     height: 56,
     borderRadius: 12,
     borderWidth: 1,
