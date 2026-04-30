@@ -154,6 +154,5 @@ export default function ResetPassword({ navigation }) {
     },
     buttonBox: {
         marginTop: 90,
-    
     },
     })

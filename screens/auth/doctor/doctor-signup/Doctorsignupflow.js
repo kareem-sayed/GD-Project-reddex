@@ -100,11 +100,7 @@ export default function DoctorSignupFlow({ navigation }) {
           />
         )}
         {currentStep === 5 && (
-          <Step5_Confirm
-            formData={formData}
-            prevStep={prevStep}
-            navigation={navigation}
-          />
+          <Step5_Confirm formData={formData} prevStep={prevStep} navigation={navigation} />
         )}
       </ScrollView>
     </SafeAreaView>

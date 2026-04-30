@@ -92,6 +92,7 @@ export default function ProfileScreen() {
                   اخر تحاليلك
                   </Text> 
         </View>
+        
         <View style={styles.card}>    
                   <View style={styles.textContainer2}>
                     <View style={{display:"flex",flexDirection:"column"}}> 
