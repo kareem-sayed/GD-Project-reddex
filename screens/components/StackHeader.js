@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
         padding: 15,
         backgroundColor: "#fff",
         elevation: 4,
-        marginBottom: 15,
+        marginBottom: 10,
     },
     title: {
         fontSize: 18,

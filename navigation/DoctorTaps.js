@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from '../screens/auth/patient/HomeScreens/HomeScreen';
 import ProfileScreen from '../screens/auth/patient/profileScreens/ProfileScreen';
-import SearchScreen from '../screens/auth/patient/SearchScreen';
+import SearchScreen from '../screens/auth/patient/SearchScreens/SearchScreen';
 
 import { Image, View, TouchableOpacity,Text} from 'react-native';
 
