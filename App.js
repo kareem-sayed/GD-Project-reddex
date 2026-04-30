@@ -13,10 +13,7 @@ import PatientSignupFlow from "./screens/auth/patient/PatientSignupFlow";
 import SignupSuccessScreen from "./screens/auth/patient/SignupSuccess";
 import Registerpage from "./screens/auth/patient/patientRegister/Registerpage";
 import ResetPassword from "./screens/auth/patient/resetPassword/resetPassword";
-// Patient Home Screens
-import HomeScreen from "./screens/auth/patient/HomeScreens/HomeScreen";
-// Patient Search Screens
-import SearchScreen from "./screens/auth/patient/SearchScreen";
+
 
 // Patient Profile Screens
 import EditAccount from "./screens/auth/patient/EditAccount/EditAccount";
@@ -71,11 +68,9 @@ export default function App() {
         <Stack.Screen name="SignupSuccess" component={SignupSuccessScreen} />
         <Stack.Screen name="Registerpage" component={Registerpage} />
         <Stack.Screen name="ResetPassword" component={ResetPassword} />
-        {/* Patient Home Screens */}
-        <Stack.Screen name="HomeScreen" component={HomeScreen} />
+       
         
-        {/* Patient Search Screens */}
-        <Stack.Screen name="SearchScreen" component={SearchScreen} />
+        
         {/* Patient Profile Screens */}
         <Stack.Screen name="EditAccount" component={EditAccount} />
         <Stack.Screen name="profileSettings" component={ProfileSettings} />
