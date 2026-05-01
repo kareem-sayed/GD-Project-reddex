@@ -199,7 +199,7 @@ function Step1_BasicInfo({ formData, updateFormData, navigation }) {
       </Text>
 
       <TouchableOpacity
-      onPress={() => navigation.replace("Registerpage")}
+      onPress={() => navigation.replace("DoctorLogin")}
         >
         <Text style={styles.noteText}>
           عندك حساب بالفعل؟ <Text style={styles.linkText}>تسجيل دخول</Text>
