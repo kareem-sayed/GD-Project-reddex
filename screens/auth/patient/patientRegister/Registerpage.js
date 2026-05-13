@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context'
 import InputField from "../../../components/InputField";
 import CustomButton from "../../../components/CustomButton";
+import { login } from "../../../../backEnd/api/services/authApi";
+import {saveToken} from "../../../../backEnd/storage/tokenStorage"
 
 export default function Registerpage({ navigation }) {
 
@@ -22,15 +24,45 @@ export default function Registerpage({ navigation }) {
     return true;
   };
 
-  const handleLogin = () => {
-    if (!validateForm()) {
-      alert("تأكد من صحة البيانات");
-      return;
+  const handleLogin = async () => {
+  if (!validateForm()) {
+    alert("تأكد من صحة البيانات");
+    return;
+  }
+
+  try {
+  
+    const res = await login({
+      email: formData.mail,
+      password: formData.password,
+    });
+
+    console.log("Login response:", res);
+
+    //  خد التوكن من الرد
+    const token = res.token;
+
+    if (token) {
+      await saveToken(token);
     }
 
-    
+    //  نجاح → روح للـ app
     navigation.replace("MainTabs");
-  };
+
+  } catch (err) {
+    console.log("Login error:", err);
+
+    if (err.response) {
+      alert(err.response.data?.message || "بيانات غير صحيحة");
+    } else {
+      alert("مشكلة في الاتصال بالإنترنت");
+    }
+
+  } 
+  //  finally {
+  //   // setLoading?.(false);
+  // }
+};
 
   const isValid = validateForm();
 

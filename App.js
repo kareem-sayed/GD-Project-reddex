@@ -19,6 +19,13 @@ import ResetPassword from "./screens/auth/patient/resetPassword/resetPassword";
 import EditAccount from "./screens/auth/patient/EditAccount/EditAccount";
 import ProfileSettings from "./screens/auth/patient/ProfileSettings/profileSettings";
 
+
+
+import ChatScreen from "./screens/auth/patient/ChatScreen/ChatScreen";
+
+import UploadFileScreen from "./screens/auth/patient/InsertAnalysis/UploadFileScreen";
+import ManualInputScreen from "./screens/auth/patient/InsertAnalysis/ManualInputScreen";
+
 // Doctor SIGNUP/IN Screens
 import DoctorSignupFlow from "./screens/auth/doctor/doctor-signup/Doctorsignupflow";
 import SignupDoneScreen from "./screens/auth/doctor/SignupDone";
@@ -68,8 +75,12 @@ export default function App() {
         <Stack.Screen name="SignupSuccess" component={SignupSuccessScreen} />
         <Stack.Screen name="Registerpage" component={Registerpage} />
         <Stack.Screen name="ResetPassword" component={ResetPassword} />
-       
-        
+
+        <Stack.Screen name="ChatScreen" component={ChatScreen} />
+
+        <Stack.Screen name="UploadFileScreen" component={UploadFileScreen} />
+
+        <Stack.Screen name="ManualInputScreen" component={ManualInputScreen} />
         
         {/* Patient Profile Screens */}
         <Stack.Screen name="EditAccount" component={EditAccount} />

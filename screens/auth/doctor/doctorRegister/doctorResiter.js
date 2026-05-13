@@ -29,7 +29,7 @@ export default function DoctorLogin({ navigation }) {
         }
 
         
-        navigation.replace("MainTabs");
+        navigation.replace("DoctorTaps");
     };
 
     const isValid = validateForm();

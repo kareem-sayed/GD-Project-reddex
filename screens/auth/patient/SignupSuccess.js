@@ -34,7 +34,7 @@ export default function SignupSuccessScreen({ navigation }) {
       <View style={styles.bottomSection}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.replace("MainTabs")}
+          onPress={() => navigation.replace("Registerpage")}
           activeOpacity={0.85}
         >
           <Text style={styles.buttonText}>ابدأ الاستخدام</Text>

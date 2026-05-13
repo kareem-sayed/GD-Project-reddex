@@ -9,13 +9,21 @@ import {
   ScrollView,
   I18nManager,
 } from "react-native";
+import { Alert } from "react-native";
+import * as DocumentPicker from "expo-document-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import UploadBlock from "../../components/UploadBlock";
+import { patientSignup } from "../../../backEnd/api/services/authApi";
 // Force RTL for Arabic
 // I18nManager.forceRTL(true);
 
+
+
+
 export default function PatientSignupFlow({ navigation }) {
   const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -29,6 +37,8 @@ export default function PatientSignupFlow({ navigation }) {
     fullName: "",
     nationalId: "",
     birthDate: "",
+    bloodType: "",
+    personalImage: null, // { uri, name, type }
     gender: null, // 'male' or 'female'
 
     // Screen 3: Health condition 1 (الحالة الصحية)
@@ -45,20 +55,99 @@ export default function PatientSignupFlow({ navigation }) {
 
   const totalSteps = 4;
 
-  const handleNext = () => {
-    console.log("Current step:", currentStep, "Total steps:", totalSteps);
-    console.log("Is valid?", isStepValid());
+const pickDocument = async (fieldName) => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["application/pdf", "image/*"],
+        copyToCacheDirectory: true,
+      });
 
-    if (currentStep < totalSteps) {
-      const nextStep = currentStep + 1;
-      console.log("Moving to step:", nextStep);
-      setCurrentStep(nextStep);
-    } else {
-      // Final step - navigate to home or complete signup
-      console.log("Signup complete - navigating to SignupSuccess");
-      navigation.navigate("SignupSuccess");
+      if (!result.canceled) {
+        const file = result.assets[0];
+
+        setFormData((prev) => ({
+          ...prev,
+          [fieldName]: {
+            uri: file.uri,
+            name: file.name,
+            type: file.mimeType,
+          },
+        }));
+      }
+    } catch (error) {
+      console.log("Document error:", error);
     }
   };
+
+
+
+  const handleSubmit = async () => {
+  try {
+    setLoading(true);
+    setError(null);
+
+    //  نبني FormData صح
+    const data = new FormData();
+
+    data.append("name", formData.fullName);
+    data.append("email", formData.email);
+    data.append("password", formData.password);
+    data.append("birthdate", formData.birthDate);
+    data.append("phone", formData.phoneNumber);
+    data.append("SSN", formData.nationalId);
+    data.append(
+      "gender",
+      formData.gender === "male" ? "MALE" : "FEMALE"
+    );
+    data.append("bloodType", formData.bloodType || "");
+    data.append("healthStatus", formData.healthStatus || "GOOD");
+    // arrays لازم JSON
+    if (formData.chronicDiseases === "yes") {
+      data.append(
+        "diseases[]",
+        formData.chronicDiseasesDetails
+      );
+    }
+
+    if (formData.takingMedication === "yes") {
+      data.append(
+        "treatments[]",
+        formData.takingMedicationDetails
+      );
+      }
+
+    //  الصورة
+    if (formData.personalImage) {
+      data.append("profilePicture", {
+        uri: formData.personalImage.uri,
+        name: "profile.jpg",
+        type: "image/jpeg",
+      });
+    }
+
+    console.log("FORMDATA READY:", data);
+
+    const res = await patientSignup(data);
+
+    console.log("Signup success:", res);
+
+    navigation.navigate("SignupSuccess");
+
+  } catch (err) {
+    console.log("Signup error:", err);
+
+    console.log("STATUS:", err.response?.status);
+    console.log("DATA:", err.response?.data);
+
+    setError(
+      err.response?.data?.message ||
+      "حصل خطأ في التسجيل"
+    );
+
+  } finally {
+    setLoading(false);
+  }
+};
 
   const updateFormData = (key, value) => {
     setFormData({ ...formData, [key]: value });
@@ -69,36 +158,91 @@ export default function PatientSignupFlow({ navigation }) {
     if (currentStep === totalSteps) return "تم";
     return "التالي";
   };
-  
-  const isStepValid = () => {
-    switch (currentStep) {
-      case 1: // Basic info
-        return (
-          formData.email.trim() !== "" &&
-          formData.phoneNumber.trim() !== "" &&
-          formData.password.trim() !== "" &&
-          formData.password.length >= 8 &&
-          formData.confirmPassword.trim() !== "" &&
-          formData.password === formData.confirmPassword
-        );
-      case 2: // Personal info
-        return (
-          formData.fullName.trim() !== "" &&
-          formData.nationalId.trim() !== "" &&
-          formData.birthDate.trim() !== "" &&
-          formData.gender !== null
-        );
-      case 3: // Health
-        return (
-          formData.chronicDiseases !== null &&
-          formData.takingMedication !== null
-        );
-      case 4: // Help - always valid (optional screen)
-        return true;
-      default:
-        return false;
+
+  const handleNext = () => {
+
+  const errorMessage = validateStep();
+
+  if (errorMessage) {
+    Alert.alert("خطأ", errorMessage);
+    return;
+  }
+
+  if (currentStep < totalSteps) {
+    const nextStep = currentStep + 1;
+    setCurrentStep(nextStep);
+  } else {
+    handleSubmit();
+  }
+};
+
+  const validateStep = () => {
+
+  // STEP 1
+  if (currentStep === 1) {
+
+    const emailRegex =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+
+    if (!emailRegex.test(formData.email)) {
+      return "البريد الإلكتروني غير صالح";
     }
-  };
+
+    if (!formData.phoneNumber.trim()) {
+      return "رقم الهاتف مطلوب";
+    }
+
+    if (!passwordRegex.test(formData.password)) {
+      return "كلمة المرور ضعيفة";
+    }
+
+    if (
+      formData.password !==
+      formData.confirmPassword
+    ) {
+      return "كلمة المرور غير متطابقة";
+    }
+  }
+
+  // STEP 2
+  if (currentStep === 2) {
+
+    const ssnRegex = /^\d{9}$/;
+
+    if (!formData.fullName.trim()) {
+      return "الاسم مطلوب";
+    }
+
+    if (!ssnRegex.test(formData.nationalId)) {
+      return "الرقم القومي لازم يكون 9 أرقام";
+    }
+
+    if (!formData.birthDate.trim()) {
+      return "تاريخ الميلاد مطلوب";
+    }
+
+    if (!formData.gender) {
+      return "اختر النوع";
+    }
+  }
+
+  // STEP 3
+  if (currentStep === 3) {
+
+    if (formData.chronicDiseases === null) {
+      return "حدد إذا كان لديك أمراض مزمنة";
+    }
+
+    if (formData.takingMedication === null) {
+      return "حدد إذا كنت تتناول أدوية";
+    }
+  }
+
+  return null;
+};
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -148,6 +292,7 @@ export default function PatientSignupFlow({ navigation }) {
             <Step2_PersonalInfo
               formData={formData}
               updateFormData={updateFormData}
+              pickDocument={pickDocument}
             />
           </>
         )}
@@ -167,17 +312,11 @@ export default function PatientSignupFlow({ navigation }) {
         {/* Bottom Button */}
         <View style={styles.bottomSection}>
           <TouchableOpacity
-            disabled={!isStepValid()}
-            style={[
-              styles.nextButton,
-              !isStepValid() && styles.nextButtonDisabled,
-            ]}
-            onPress={handleNext}
-            activeOpacity={0.85}
+          style={styles.nextButton}
+          onPress={handleNext}
+          activeOpacity={0.85}
           >
-            <Text
-              style={[styles.nextText, !isStepValid() && styles.nextTextDisabled]}
-            >
+            <Text style={styles.nextText}>
               {getButtonLabel()}
             </Text>
           </TouchableOpacity>
@@ -222,6 +361,8 @@ function Step1_BasicInfo({ formData, updateFormData, navigation }) {
           onChangeText={(val) => updateFormData("phoneNumber", val)}
           keyboardType="phone-pad"
         />
+        <Text style={styles.helperText}>ابدا بكود بلدك بعد الرقم</Text>
+
 
         <InputField
           label="كلمة السر"
@@ -230,7 +371,7 @@ function Step1_BasicInfo({ formData, updateFormData, navigation }) {
           onChangeText={(val) => updateFormData("password", val)}
           secureTextEntry
         />
-        <Text style={styles.helperText}>لازم تكون أكثر من 8 حروف</Text>
+        <Text style={styles.helperText}>لازم تكون أكثر من 8 حروف فيها حروف رموز وارقام</Text>
 
         <InputField
           label="تأكيد كلمة السر"
@@ -247,7 +388,7 @@ function Step1_BasicInfo({ formData, updateFormData, navigation }) {
 }
 
 // ─── SCREEN 2: Personal Info (معلومات عنك) ─────────────────────────────────
-function Step2_PersonalInfo({ formData, updateFormData }) {
+function Step2_PersonalInfo({ formData, updateFormData,pickDocument }) {
   return (
     <View style={styles.stepContainer}>
       <Text style={styles.stepTitle}>معلومات عنك</Text>
@@ -269,6 +410,8 @@ function Step2_PersonalInfo({ formData, updateFormData }) {
           onChangeText={(val) => updateFormData("nationalId", val)}
           keyboardType="number-pad"
         />
+        <Text style={styles.helperText}>  تاكد انه بيتكون من 9 ارقام</Text>
+
         <InputField
           label="السن"
           placeholder="عندك كام سنة"
@@ -276,6 +419,23 @@ function Step2_PersonalInfo({ formData, updateFormData }) {
           onChangeText={(val) => updateFormData("birthDate", val)}
           keyboardType="number-pad"
         />
+        <Text style={styles.helperText}>  YYYY-MM-DD  </Text>
+
+
+        <InputField
+          label="فصيلة الدم"
+          placeholder="  نوع الفصيله"
+          value={formData.bloodType}
+          onChangeText={(val) => updateFormData("bloodType", val)}
+          
+        />
+        <UploadBlock
+            label="صورة شخصية (اختياري)"
+            optional
+            formats="PDF, JPG, PNG"
+            file={formData.personalImage}
+            onPress={() => pickDocument("personalImage")}
+          />
 
         <Text style={styles.fieldLabel}>النوع</Text>
         <View style={styles.radioRow}>
