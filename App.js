@@ -12,7 +12,7 @@ import RoleSelectScreen from "./screens/onboarding/RoleSelectScreen";
 import PatientSignupFlow from "./screens/auth/patient/PatientSignupFlow";
 import SignupSuccessScreen from "./screens/auth/patient/SignupSuccess";
 import Registerpage from "./screens/auth/patient/patientRegister/Registerpage";
-import ResetPassword from "./screens/auth/patient/resetPassword/resetPassword";
+// import ResetPassword from "./screens/auth/patient/resetPassword/resetPassword";
 
 
 // Patient Profile Screens
@@ -29,7 +29,11 @@ import ManualInputScreen from "./screens/auth/patient/InsertAnalysis/ManualInput
 // Doctor SIGNUP/IN Screens
 import DoctorSignupFlow from "./screens/auth/doctor/doctor-signup/Doctorsignupflow";
 import SignupDoneScreen from "./screens/auth/doctor/SignupDone";
-import DoctorLogin from "./screens/auth/doctor/doctorRegister/doctorResiter";
+// Doctor SIGNIN Screens
+import DoctorLogin from "./screens/auth/doctor/doctorRegister/doctorLogin";
+import ForgotPassword from "./screens/auth/doctor/doctorRegister/ForgotPassword";
+import VerifyCode from "./screens/auth/doctor/doctorRegister/VerifyCode";
+import ResetPassword from "./screens/auth/doctor/doctorRegister/ResetPassword";
 // Doctor Home Screens
 import DoctorHomeScreen from "./screens/auth/doctor/home/DoctorHomeScreen";
 import NotificationsScreen from "./screens/auth/doctor/home/NotificationsScreen";
@@ -88,7 +92,6 @@ export default function App() {
         {/* Doctor SIGNUP/IN Screens */}
         <Stack.Screen name="DoctorSignupFlow" component={DoctorSignupFlow} />
         <Stack.Screen name="signupDone" component={SignupDoneScreen} />
-        <Stack.Screen name="doctorLogin" component={DoctorLogin} />
         {/* Doctor Home Screens */}
         <Stack.Screen name="DoctorHomeScreen" component={DoctorHomeScreen} />
         <Stack.Screen name="NotificationsScreen" component={NotificationsScreen} options={{ headerShown: false }} />
@@ -115,6 +118,11 @@ export default function App() {
         <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
         <Stack.Screen name="AccountSettings" component={AccountSettings} />
         <Stack.Screen name="HelpScreen" component={HelpScreen} /> 
+        {/* SIGNIN FLOW */}
+        <Stack.Screen name="DoctorLogin" component={DoctorLogin} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+        <Stack.Screen name="VerifyCode" component={VerifyCode} />
+        <Stack.Screen name="ResetPassword" component={ResetPassword} />
       </Stack.Navigator>
     </NavigationContainer>
   );

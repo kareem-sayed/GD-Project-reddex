@@ -46,7 +46,7 @@ export default function Step1_BasicInfo({
         <Text style={styles.subtitle}>
           دخل بياناتك الأساسية علشان نعمل حسابك كدكتور.
         </Text>
-        <TouchableOpacity onPress={() => navigation.replace("doctorLogin")}>
+        <TouchableOpacity onPress={() => navigation.replace("DoctorLogin")}>
           <Text style={styles.noteText}>
             {"عندك حساب بالفعل؟\u00A0"}
               <Text style={styles.linkText}>تسجيل دخول</Text>
