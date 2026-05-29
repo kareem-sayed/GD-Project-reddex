@@ -100,7 +100,12 @@ const pickDocument = async (fieldName) => {
       formData.gender === "male" ? "MALE" : "FEMALE"
     );
     data.append("bloodType", formData.bloodType || "");
-    data.append("healthStatus", formData.healthStatus || "GOOD");
+    data.append(
+    "healthStatus",
+    formData.chronicDiseases === "yes"
+      ? "مريض"
+      : "مستقر"
+    );
     // arrays لازم JSON
     if (formData.chronicDiseases === "yes") {
       data.append(
@@ -338,7 +343,7 @@ function Step1_BasicInfo({ formData, updateFormData, navigation }) {
       </Text>
 
       <TouchableOpacity
-      onPress={() => navigation.replace("DoctorLogin")}
+      onPress={() => navigation.replace("Registerpage")}
         >
         <Text style={styles.noteText}>
           عندك حساب بالفعل؟ <Text style={styles.linkText}>تسجيل دخول</Text>

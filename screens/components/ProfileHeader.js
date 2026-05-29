@@ -33,7 +33,7 @@ return (
                 <MenuItem title="تعديل الملف الشخصي" onPress={() => navigation.navigate("EditAccount")} />
                 <MenuItem title="الإعدادات" onPress={() => navigation.navigate("profileSettings")} />
                 <MenuItem title="المحفوظات" onPress={() => navigation.navigate("Saved")} />
-                <MenuItem title="المساعدة" onPress={() => navigation.navigate("Help")} />
+                <MenuItem title="المساعدة" onPress={() => navigation.navigate("HelpScreen")} />
                 </View>
             </Pressable>
         )}

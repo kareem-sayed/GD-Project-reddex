@@ -1,129 +1,373 @@
+import React, { useContext } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-// Splash Screen
+import { I18nManager, View, Text } from "react-native";
+
+import PatientProvider
+from "./backEnd/context/PatientContext";
+
+import AuthProvider, {
+  AuthContext,
+} from "./backEnd/context/AuthContext";
+
+// ================= AUTH =================
+
+// Splash
 import SplashScreen from "./screens/SplashScreen";
-// Onboarding Screens
+
+// Onboarding
 import WelcomeScreen from "./screens/onboarding/WelcomeScreen";
 import TrackingScreen from "./screens/onboarding/TrackingScreen";
 import AlertScreen from "./screens/onboarding/AlertScreen";
 import ReadyScreen from "./screens/onboarding/ReadyScreen";
 import RoleSelectScreen from "./screens/onboarding/RoleSelectScreen";
-// Patient SIGNUP/IN Screens
+
+// Patient Auth
 import PatientSignupFlow from "./screens/auth/patient/PatientSignupFlow";
 import SignupSuccessScreen from "./screens/auth/patient/SignupSuccess";
 import Registerpage from "./screens/auth/patient/patientRegister/Registerpage";
-// import ResetPassword from "./screens/auth/patient/resetPassword/resetPassword";
 
+// Doctor Auth
+import DoctorSignupFlow from "./screens/auth/doctor/doctor-signup/Doctorsignupflow";
+import SignupDoneScreen from "./screens/auth/doctor/SignupDone";
+import DoctorLogin from "./screens/auth/doctor/doctorRegister/doctorLogin";
+import ForgotPassword from "./screens/auth/doctor/doctorRegister/ForgotPassword";
+import VerifyCode from "./screens/auth/doctor/doctorRegister/VerifyCode";
+import ResetPassword from "./screens/auth/doctor/doctorRegister/ResetPassword";
 
-// Patient Profile Screens
-import EditAccount from "./screens/auth/patient/EditAccount/EditAccount";
-import ProfileSettings from "./screens/auth/patient/ProfileSettings/profileSettings";
+// ================= PATIENT =================
 
+import TabsNavigation from "./navigation/TabsNavigation";
 
-
+import medicins from "./screens/auth/patient/HomeScreens/medicins";
 import ChatScreen from "./screens/auth/patient/ChatScreen/ChatScreen";
 
 import UploadFileScreen from "./screens/auth/patient/InsertAnalysis/UploadFileScreen";
 import ManualInputScreen from "./screens/auth/patient/InsertAnalysis/ManualInputScreen";
 
-// Doctor SIGNUP/IN Screens
-import DoctorSignupFlow from "./screens/auth/doctor/doctor-signup/Doctorsignupflow";
-import SignupDoneScreen from "./screens/auth/doctor/SignupDone";
-// Doctor SIGNIN Screens
-import DoctorLogin from "./screens/auth/doctor/doctorRegister/doctorLogin";
-import ForgotPassword from "./screens/auth/doctor/doctorRegister/ForgotPassword";
-import VerifyCode from "./screens/auth/doctor/doctorRegister/VerifyCode";
-import ResetPassword from "./screens/auth/doctor/doctorRegister/ResetPassword";
-// Doctor Home Screens
+import EditAccount from "./screens/auth/patient/EditAccount/EditAccount";
+import ProfileSettings from "./screens/auth/patient/ProfileSettings/profileSettings";
+
+// ================= DOCTOR =================
+
+import DoctorTaps from "./navigation/DoctorTaps";
+
 import DoctorHomeScreen from "./screens/auth/doctor/home/DoctorHomeScreen";
 import NotificationsScreen from "./screens/auth/doctor/home/NotificationsScreen";
 import AllRequestsScreen from "./screens/auth/doctor/home/AllRequestsScreen";
-// Doctor Patients Screens
+
 import PatientsScreen from "./screens/auth/doctor/patients/PatientsScreen";
 import CriticalCondition from "./screens/auth/doctor/patients/CriticalCondition";
 import StableCondition from "./screens/auth/doctor/patients/StableCondition";
 import FollowUpScreen from "./screens/auth/doctor/patients/FollowUpScreen";
 import MedicationsScreen from "./screens/auth/doctor/patients/MedicationsScreen";
-// Doctor Profile Screens
+
 import DoctorProfileScreen from "./screens/auth/doctor/profile/DoctorProfileScreen";
 import EditProfileScreen from "./screens/auth/doctor/profile/EditProfileScreen";
 import AccountSettings from "./screens/auth/doctor/profile/AccountSettings";
 import HelpScreen from "./screens/auth/doctor/profile/HelpScreen";
-// Navigation
-import TabsNavigation from "./navigation/TabsNavigation";
 
-import DoctorTaps from "./navigation/DoctorTaps"
-//components
 
-import { I18nManager } from "react-native";
+// ================= RTL =================
 
 I18nManager.forceRTL(true);
 I18nManager.allowRTL(true);
 
+// ================= STACKS =================
+
 const Stack = createNativeStackNavigator();
+
+const AuthStack = createNativeStackNavigator();
+const PatientStack = createNativeStackNavigator();
+const DoctorStack = createNativeStackNavigator();
+
+// ======================================================
+// AUTH STACK
+// ======================================================
+
+function AuthNavigator() {
+  return (
+    <AuthStack.Navigator
+      screenOptions={{ headerShown: false }}
+    >
+
+      {/* Splash */}
+      <AuthStack.Screen
+        name="Splash"
+        component={SplashScreen}
+      />
+
+      {/* Onboarding */}
+      <AuthStack.Screen
+        name="WelcomeScreen"
+        component={WelcomeScreen}
+      />
+
+      <AuthStack.Screen
+        name="TrackingScreen"
+        component={TrackingScreen}
+      />
+
+      <AuthStack.Screen
+        name="AlertScreen"
+        component={AlertScreen}
+      />
+
+      <AuthStack.Screen
+        name="ReadyScreen"
+        component={ReadyScreen}
+      />
+
+      <AuthStack.Screen
+        name="RoleSelectScreen"
+        component={RoleSelectScreen}
+      />
+
+      {/* Patient Auth */}
+      <AuthStack.Screen
+        name="PatientSignupFlow"
+        component={PatientSignupFlow}
+      />
+
+      <AuthStack.Screen
+        name="SignupSuccess"
+        component={SignupSuccessScreen}
+      />
+
+      <AuthStack.Screen
+        name="Registerpage"
+        component={Registerpage}
+      />
+
+      {/* Doctor Auth */}
+      <AuthStack.Screen
+        name="DoctorSignupFlow"
+        component={DoctorSignupFlow}
+      />
+
+      <AuthStack.Screen
+        name="signupDone"
+        component={SignupDoneScreen}
+      />
+
+      <AuthStack.Screen
+        name="DoctorLogin"
+        component={DoctorLogin}
+      />
+
+      <AuthStack.Screen
+        name="ForgotPassword"
+        component={ForgotPassword}
+      />
+
+      <AuthStack.Screen
+        name="VerifyCode"
+        component={VerifyCode}
+      />
+
+      <AuthStack.Screen
+        name="ResetPassword"
+        component={ResetPassword}
+      />
+
+    </AuthStack.Navigator>
+  );
+}
+
+// ======================================================
+// PATIENT STACK
+// ======================================================
+
+function PatientNavigator() {
+  return (
+    <PatientStack.Navigator
+      screenOptions={{ headerShown: false }}
+    >
+
+      {/* Main Tabs */}
+      <PatientStack.Screen
+        name="MainTabs"
+        component={TabsNavigation}
+      />
+
+      {/* Patient Screens */}
+      <PatientStack.Screen
+        name="ChatScreen"
+        component={ChatScreen}
+      />
+
+      <PatientStack.Screen
+        name="medicins"
+        component={medicins}
+      />
+
+      <PatientStack.Screen
+        name="UploadFileScreen"
+        component={UploadFileScreen}
+      />
+
+      <PatientStack.Screen
+        name="ManualInputScreen"
+        component={ManualInputScreen}
+      />
+
+      <PatientStack.Screen
+        name="EditAccount"
+        component={EditAccount}
+      />
+
+      <PatientStack.Screen
+        name="profileSettings"
+        component={ProfileSettings}
+      />
+      <PatientStack.Screen
+        name="HelpScreen"
+        component={HelpScreen}
+      />
+      <PatientStack.Screen
+      name="NotificationsScreen"
+        component={NotificationsScreen}
+      />
+
+    </PatientStack.Navigator>
+  );
+}
+
+// ======================================================
+// DOCTOR STACK
+// ======================================================
+
+function DoctorNavigator() {
+  return (
+    <DoctorStack.Navigator
+      screenOptions={{ headerShown: false }}
+    >
+
+      {/* Doctor Tabs */}
+      <DoctorStack.Screen
+        name="DoctorTaps"
+        component={DoctorTaps}
+      />
+
+      {/* Doctor Home */}
+      <DoctorStack.Screen
+        name="DoctorHomeScreen"
+        component={DoctorHomeScreen}
+      />
+
+      <DoctorStack.Screen
+        name="NotificationsScreen"
+        component={NotificationsScreen}
+      />
+
+      <DoctorStack.Screen
+        name="AllRequestsScreen"
+        component={AllRequestsScreen}
+      />
+
+      {/* Doctor Patients */}
+      <DoctorStack.Screen
+        name="PatientsScreen"
+        component={PatientsScreen}
+      />
+
+      <DoctorStack.Screen
+        name="CriticalCondition"
+        component={CriticalCondition}
+      />
+
+      <DoctorStack.Screen
+        name="StableCondition"
+        component={StableCondition}
+      />
+
+      <DoctorStack.Screen
+        name="FollowUpScreen"
+        component={FollowUpScreen}
+      />
+
+      <DoctorStack.Screen
+        name="MedicationsScreen"
+        component={MedicationsScreen}
+      />
+
+      {/* Doctor Profile */}
+      <DoctorStack.Screen
+        name="DoctorProfileScreen"
+        component={DoctorProfileScreen}
+      />
+
+      <DoctorStack.Screen
+        name="EditProfileScreen"
+        component={EditProfileScreen}
+      />
+
+      <DoctorStack.Screen
+        name="AccountSettings"
+        component={AccountSettings}
+      />
+
+      <DoctorStack.Screen
+        name="HelpScreen"
+        component={HelpScreen}
+      />
+
+    </DoctorStack.Navigator>
+  );
+}
+
+// ======================================================
+// ROOT NAVIGATOR
+// ======================================================
+
+function RootNavigator() {
+
+  const {
+    isLoggedIn,
+    loading,
+    userRole,
+  } = useContext(AuthContext);
+
+  // Loading
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <NavigationContainer>
+
+      {!isLoggedIn ? (
+        <AuthNavigator />
+      ) : userRole === "doctor" ? (
+        <DoctorNavigator />
+      ) : (
+        <PatientNavigator />
+      )}
+
+    </NavigationContainer>
+  );
+}
+
+// ======================================================
+// APP
+// ======================================================
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {/* Splash Screen */}
-        <Stack.Screen name="Splash" component={SplashScreen} />
-        {/* Onboarding Screens */}
-        <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} />
-        <Stack.Screen name="TrackingScreen" component={TrackingScreen} />
-        <Stack.Screen name="AlertScreen" component={AlertScreen} />
-        <Stack.Screen name="ReadyScreen" component={ReadyScreen} />
-        <Stack.Screen name="RoleSelectScreen" component={RoleSelectScreen} />
-        {/* Patient Screens */}
-        <Stack.Screen name="PatientSignupFlow" component={PatientSignupFlow} />
-        <Stack.Screen name="SignupSuccess" component={SignupSuccessScreen} />
-        <Stack.Screen name="Registerpage" component={Registerpage} />
-        <Stack.Screen name="ResetPassword" component={ResetPassword} />
-
-        <Stack.Screen name="ChatScreen" component={ChatScreen} />
-
-        <Stack.Screen name="UploadFileScreen" component={UploadFileScreen} />
-
-        <Stack.Screen name="ManualInputScreen" component={ManualInputScreen} />
-        
-        {/* Patient Profile Screens */}
-        <Stack.Screen name="EditAccount" component={EditAccount} />
-        <Stack.Screen name="profileSettings" component={ProfileSettings} />
-        {/* Doctor SIGNUP/IN Screens */}
-        <Stack.Screen name="DoctorSignupFlow" component={DoctorSignupFlow} />
-        <Stack.Screen name="signupDone" component={SignupDoneScreen} />
-        {/* Doctor Home Screens */}
-        <Stack.Screen name="DoctorHomeScreen" component={DoctorHomeScreen} />
-        <Stack.Screen name="NotificationsScreen" component={NotificationsScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="AllRequestsScreen" component={AllRequestsScreen} options={{ headerShown: false }} />
-        
-        <Stack.Screen 
-          name="MainTabs" 
-          component={TabsNavigation}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="DoctorTaps"
-          component={DoctorTaps}
-          options={{ headerShown: false }}
-        />
-        {/* Doctor Patients Screens */}
-        <Stack.Screen name="PatientsScreen" component={PatientsScreen} />
-        <Stack.Screen name="CriticalCondition" component={CriticalCondition} />
-        <Stack.Screen name="StableCondition" component={StableCondition} />
-        <Stack.Screen name="FollowUpScreen" component={FollowUpScreen} />
-        <Stack.Screen name="MedicationsScreen" component={MedicationsScreen} />
-        {/* Doctor Profile Screens */}
-        <Stack.Screen name="DoctorProfileScreen" component={DoctorProfileScreen} />
-        <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
-        <Stack.Screen name="AccountSettings" component={AccountSettings} />
-        <Stack.Screen name="HelpScreen" component={HelpScreen} /> 
-        {/* SIGNIN FLOW */}
-        <Stack.Screen name="DoctorLogin" component={DoctorLogin} />
-        <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
-        <Stack.Screen name="VerifyCode" component={VerifyCode} />
-        <Stack.Screen name="ResetPassword" component={ResetPassword} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <AuthProvider>
+      <PatientProvider>
+        <RootNavigator />
+      </PatientProvider>
+    </AuthProvider>
   );
 }

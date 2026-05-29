@@ -16,4 +16,22 @@ mainClient.interceptors.request.use(async (config) => {
     return config;
 });
 
+mainClient.interceptors.response.use(
+
+    (response) => response,
+
+    async (error) => {
+
+        if (error.response?.status === 401) {
+
+        console.log("Token expired");
+
+        await removeToken();
+
+        }
+
+        return Promise.reject(error);
+    }
+);
+
 export default mainClient;

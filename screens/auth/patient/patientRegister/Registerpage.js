@@ -4,14 +4,16 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import InputField from "../../../components/InputField";
 import CustomButton from "../../../components/CustomButton";
 import { login } from "../../../../backEnd/api/services/authApi";
-import {saveToken} from "../../../../backEnd/storage/tokenStorage"
-
+import { useContext } from "react";
+import { AuthContext } from "../../../../backEnd/context/AuthContext";
 export default function Registerpage({ navigation }) {
 
   const [formData, setFormData] = useState({
     mail: "", 
     password: "",
   });
+
+  const { loginUser } = useContext(AuthContext);
 
   const validateForm = () => {
     const { mail, password } = formData;
@@ -24,44 +26,50 @@ export default function Registerpage({ navigation }) {
     return true;
   };
 
-  const handleLogin = async () => {
+ const handleLogin = async () => {
+  console.log("LOGIN CLICKED");
+
   if (!validateForm()) {
     alert("تأكد من صحة البيانات");
     return;
   }
 
   try {
-  
+
     const res = await login({
       email: formData.mail,
       password: formData.password,
     });
 
-    console.log("Login response:", res);
+    console.log("LOGIN RESPONSE:", res);
 
-    //  خد التوكن من الرد
-    const token = res.token;
+    const token = res.data.data.token; 
+
+    console.log("TOKEN:", token);
 
     if (token) {
-      await saveToken(token);
-    }
 
-    //  نجاح → روح للـ app
-    navigation.replace("MainTabs");
+      await loginUser(token);
+
+      console.log("LOGIN SUCCESS");
+
+    } else {
+
+      console.log("TOKEN NOT FOUND");
+
+      alert("التوكن غير موجود");
+    }
 
   } catch (err) {
-    console.log("Login error:", err);
 
-    if (err.response) {
-      alert(err.response.data?.message || "بيانات غير صحيحة");
-    } else {
-      alert("مشكلة في الاتصال بالإنترنت");
-    }
+    console.log("LOGIN ERROR:", err);
+    console.log("ERROR DATA:", err.response?.data);
 
-  } 
-  //  finally {
-  //   // setLoading?.(false);
-  // }
+    alert(
+      err.response?.data?.message ||
+      "حصل خطأ"
+    );
+  }
 };
 
   const isValid = validateForm();

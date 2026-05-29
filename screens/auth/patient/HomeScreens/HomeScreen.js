@@ -1,66 +1,109 @@
-// HomeScreen.js
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView ,StatusBar,Image,ScrollView} from "react-native";
+import { useEffect, useState, useContext } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Image, ScrollView } from "react-native";
 
+import { getMyPrescriptions, getPatientProfile } from "../../../../backEnd/api/services/patientApi";
+import { PatientContext } from "../../../../backEnd/context/PatientContext";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function HomeScreen({ navigation }) {
+
+  const {
+    profile,
+    setProfile,
+    medications,
+    setMedications,
+  } = useContext(PatientContext);
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchMedications();  
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const data = await getPatientProfile();
+      console.log(data);
+      setProfile(data);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMedications = async () => {
+    try {
+      const data = await getMyPrescriptions();
+      console.log(data);
+      setMedications(data);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const Item = ({ icon, title, nav }) => (
-  <View style={styles.item}>
-    <TouchableOpacity onPress={() => navigation.navigate(nav)} >
-      <View style={styles.circle}>
-        <Ionicons name={icon} size={28} color="#8B7E66" />
-      </View>
-    
-    <Text style={styles.text}>{title}</Text>
-    </TouchableOpacity>
-  </View>
+    <View style={styles.item}>
+      <TouchableOpacity onPress={() => navigation.navigate(nav)} >
+        <View style={styles.circle}>
+          <Ionicons name={icon} size={28} color="#8B7E66" />
+        </View>
+        <Text style={styles.text}>{title}</Text>
+      </TouchableOpacity>
+    </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} style={{width:"100%"}}>
+      <ScrollView showsVerticalScrollIndicator={false} style={{ width: "100%" }}>
 
         <StatusBar barStyle="dark-content" backgroundColor="#FAF7F2" />
 
-        <View style={styles.containeritem}> 
-          <Item icon="calendar-outline" title="تابع مع  دكتور " nav="Search" />
+        <View style={styles.containeritem}>
+          <Item icon="calendar-outline" title="تابع مع دكتور" nav="Search" />
           <Item icon="flask-outline" title="افهم تحاليلك" nav="UploadFileScreen" />
-          <Item icon="medical-outline" title="تشخيص الأعراض" nav="ChatScreen"/>
+          <Item icon="medical-outline" title="تشخيص الأعراض" nav="ChatScreen" />
         </View>
 
         <View style={styles.containerImage}>
-              <Image
-                source={require('../../../../assets/images/homepage/home.png')}
-                style={{ width: "100%", height: 180, resizeMode: "contain", borderRadius: 22 }}
-                />
+          <Image
+            source={require('../../../../assets/images/homepage/home.png')}
+            style={{ width: "100%", height: 180, resizeMode: "contain", borderRadius: 22 }}
+          />
         </View>
 
         <View style={styles.textContainer}>
           <Text style={{ fontSize: 17, color: "#111111", fontWeight: "bold" }}>
             ادويتك
-          </Text> 
-          <TouchableOpacity onPress={() => navigation.navigate("Search")}>
-            <Text style={{ fontSize: 15, color: "#784847", fontWeight: 400 ,textDecorationLine:"underline", textDecorationColor:"#784847"}}>
-              كل الادوية    
+          </Text>
+          <TouchableOpacity onPress={() => navigation.navigate("medicins")}>
+            <Text style={{ fontSize: 15, color: "#784847", fontWeight: 400, textDecorationLine: "underline", textDecorationColor: "#784847" }}>
+              كل الادوية
             </Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.card}>    
+        <View style={styles.card}>
           <View style={styles.textContainer2}>
-            <View style={{display:"flex",flexDirection:"row", gap:10,}}>
-                <Text style={styles.medicineName}>Rocaltrol</Text>
-                <Text style={styles.subText}>
-                  1 كبسولة - مرة يوميًا
-                </Text>
-            </View>
-
-            <View style={{display:"flex",flexDirection:"row", gap:10,}}>
-              <Text style={styles.time}>ميعادك الجاي:</Text>
-              <Text style={styles.time}>9:00 مساءً</Text>
-            </View>
+          
+            {medications && medications.allMedications ? (
+              medications.allMedications.map((item, index) => (
+                <View key={index} style={{ display: "flex", flexDirection: "row", gap: 10 }}>
+                  <Text style={styles.medicineName}>{item.trim()}</Text>
+                  <Text style={styles.subText}>
+                    1 كبسولة - مرة يوميًا
+                  </Text>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.subText}>جاري تحميل الأدوية...</Text>
+            )}
           </View>
+
           <View style={styles.iconContainer}>
             <Ionicons name="link-outline" size={20} color="#8B6F47" />
           </View>
@@ -68,52 +111,52 @@ export default function HomeScreen({ navigation }) {
 
         <View style={styles.textContainer}>
           <Text style={{ fontSize: 18, color: "#111111", fontWeight: "bold" }}>
-            حالتك الصحية 
-          </Text> 
+            حالتك الصحية
+          </Text>
         </View>
 
         <View style={styles.card}>
-          <View style={{display:"flex",flexDirection:"row",width:"100%",gap:6,alignItems:"center"}}>
-            <View style={styles.statusIndicator}></View>
-            <Text style={styles.medicineName }> حالتك الصحية مستقرة </Text>
-            </View>
+          <View style={{ display: "flex", flexDirection: "row", width: "100%", gap: 6, alignItems: "center" }}>
+            <View style={[styles.statusIndicator, { backgroundColor: profile?.healthStatus === 'مستقر' ? '#22c417' : '#e91e10' }]}></View>
+            <Text style={styles.medicineName}> {profile?.healthStatus === "مريض" ? "غير مستقر" : (profile?.healthStatus || "لا يوجد بيانات")} </Text>
           </View>
-
-          <View style={styles.textContainer}>
-          <Text style={{ fontSize: 16, color: "#111111", fontWeight: "bold" }}>
-            اخر تحليل
-          </Text> 
         </View>
 
-          <View style={styles.card}>    
+        <View style={styles.textContainer}>
+          <Text style={{ fontSize: 16, color: "#111111", fontWeight: "bold" }}>
+            اخر تحليل
+          </Text>
+        </View>
+
+        <View style={styles.card}>
           <View style={styles.textContainer2}>
-            <View style={{display:"flex",flexDirection:"row", gap:10,}}>
-                <Text style={styles.medicineName}>مستوى الهيموغلوبين</Text>
-                <Text style={styles.subText,{color:"#b9c422"}} >
-                    منخفض نسبيا
-                </Text>
+            <View style={{ display: "flex", flexDirection: "row", gap: 10 }}>
+              <Text style={styles.medicineName}>مستوى الهيموغلوبين</Text>
+              <Text style={[styles.subText, { color: "#b9c422" }]}>
+                منخفض نسبيا
+              </Text>
             </View>
 
-            <View style={{display:"flex",flexDirection:"row", gap:10,}}>
-                <Text style={styles.medicineName}>مستوى التغيير</Text>
-                <Text style={styles.subText,{color:"#22c417"}} >
-                    مستقر
-                </Text>
+            <View style={{ display: "flex", flexDirection: "row", gap: 10 }}>
+              <Text style={styles.medicineName}>مستوى التغيير</Text>
+              <Text style={[styles.subText, { color: "#22c417" }]}>
+                مستقر
+              </Text>
             </View>
 
-            <View style={{display:"flex",flexDirection:"row", gap:10,}}>
+            <View style={{ display: "flex", flexDirection: "row", gap: 10 }}>
               <Text style={styles.time}> الوقت:</Text>
               <Text style={styles.time}>3 ايام </Text>
             </View>
           </View>
-
-          
         </View>
 
-        </ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }
+
+
 
 
 const styles = StyleSheet.create({
@@ -212,7 +255,6 @@ const styles = StyleSheet.create({
   statusIndicator: {
     width: 15,
     height: 15,
-    backgroundColor: "green",
     borderRadius: 10,
   },
 });

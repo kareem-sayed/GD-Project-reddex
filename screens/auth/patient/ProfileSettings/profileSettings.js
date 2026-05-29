@@ -7,14 +7,25 @@ import {
     TouchableOpacity,
     StatusBar,
 } from "react-native";
+import {
+  useContext
+} from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import StackHeader from "../../../components/StackHeader";
-
+import {
+    AuthContext
+} from "../../../../backEnd/context/AuthContext";
 
 export default function ProfileSettings({ navigation }) {  
     const [notifications, setNotifications] = useState(false);
-    
+    const { logoutUser } = useContext(AuthContext);
+
+    const handleLogout =
+    async () => {
+    await logoutUser();
+
+    };
     return (
         <SafeAreaView style={styles.container}>
                 <StatusBar barStyle="dark-content" backgroundColor="#FAF7F2" />
@@ -37,7 +48,10 @@ export default function ProfileSettings({ navigation }) {
                 
                 {/* ====== Section: Account ====== */}
                 <View style={styles.card }>
-                    <TouchableOpacity style={styles.row,{flexDirection: "row-reverse",justifyContent: "space-between",}}>
+                    <TouchableOpacity
+                    onPress={handleLogout}
+                    style={styles.row,{flexDirection: "row-reverse",
+                    justifyContent: "space-between",}}>
                     <Ionicons name="log-out-outline" size={25} color="red" />
                     <Text style={[styles.text, { color: "red" }]}>تسجيل خروج</Text>
                     </TouchableOpacity>

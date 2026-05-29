@@ -6,15 +6,21 @@ import ProfileScreen from '../screens/auth/patient/profileScreens/ProfileScreen'
 import SearchScreen from '../screens/auth/patient/SearchScreens/SearchScreen';
 import { Image, View, TouchableOpacity,Text} from 'react-native';
 
+import { useContext } from 'react';
+import {PatientContext} from '../backEnd/context/PatientContext';
+
 const Tab = createBottomTabNavigator();
 
-export default function TabsNavigation() {
+export default function TabsNavigation({ navigation }) {
+    const {profile, setProfile} = useContext(PatientContext);
+    
+
     return (
         <Tab.Navigator
+            initialRouteName="Home"
             screenOptions={({ route }) => ({
             tabBarActiveTintColor: '#b00b0b',
             tabBarInactiveTintColor: '#6a4848b3',
-
             tabBarLabelStyle: {
                 fontSize: 12,
                 fontWeight: 'bold',
@@ -26,7 +32,6 @@ export default function TabsNavigation() {
                 if (route.name === 'Home') iconName = 'home';
                 else if (route.name === 'Profile') iconName = 'person';
                 else if (route.name === 'Search') iconName = 'search';
-
                 return <Ionicons name={iconName} size={size} color={color} />;
             },
         })}>
@@ -45,19 +50,19 @@ export default function TabsNavigation() {
             options={{
                 tabBarLabel: 'الرئيسية',
                 headerShown: true,
-
+                headerTitle: "",
                 headerLeft: () => (
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 5, gap: 5 }}>
                     <Image
-                    source={require('../assets/images/profile/Gemini_Generated_Image_r6e3jyr6e3jyr6e3.png')}
+                    source={{uri: profile?.user?.photourl }}
                     style={{ width: 45, height: 45, borderRadius: 20, marginLeft: 15 }}
                     />
-                    <Text style={{ fontSize: 18, fontWeight: 'bold' }}>اهلاً , علي</Text>
+                    <Text style={{ fontSize: 18, fontWeight: 'bold' }}>اهلاً , {profile?.user?.name}</Text>
                 </View>
                 ),
 
                 headerRight: () => (
-                <TouchableOpacity onPress={() => alert('Notifications')}>
+                <TouchableOpacity onPress={() => navigation.navigate("NotificationsScreen")}>
                     <View style={{
                     backgroundColor: '#fafafa',
                     padding: 10,

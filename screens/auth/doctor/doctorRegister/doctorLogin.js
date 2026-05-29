@@ -33,7 +33,7 @@ export default function DoctorLogin({ navigation }) {
       return;
     }
 
-    navigation.replace("MainTabs");
+    // navigation.replace("MainTabs");
   };
 
   const isValid = validateForm();
