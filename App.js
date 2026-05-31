@@ -3,12 +3,9 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { I18nManager, View, Text } from "react-native";
 
-import PatientProvider
-from "./backEnd/context/PatientContext";
+import PatientProvider from "./backEnd/context/PatientContext";
 
-import AuthProvider, {
-  AuthContext,
-} from "./backEnd/context/AuthContext";
+import AuthProvider, { AuthContext } from "./backEnd/context/AuthContext";
 
 // ================= AUTH =================
 
@@ -40,7 +37,7 @@ import ResetPassword from "./screens/auth/doctor/doctorRegister/ResetPassword";
 import TabsNavigation from "./navigation/TabsNavigation";
 
 import medicins from "./screens/auth/patient/HomeScreens/medicins";
-import ChatScreen from "./screens/auth/patient/ChatScreen/ChatScreen";
+import ChatScreen from "./screens/auth/patient/chatScreen/ChatScreen";
 
 import UploadFileScreen from "./screens/auth/patient/InsertAnalysis/UploadFileScreen";
 import ManualInputScreen from "./screens/auth/patient/InsertAnalysis/ManualInputScreen";
@@ -67,7 +64,6 @@ import EditProfileScreen from "./screens/auth/doctor/profile/EditProfileScreen";
 import AccountSettings from "./screens/auth/doctor/profile/AccountSettings";
 import HelpScreen from "./screens/auth/doctor/profile/HelpScreen";
 
-
 // ================= RTL =================
 
 I18nManager.forceRTL(true);
@@ -87,41 +83,20 @@ const DoctorStack = createNativeStackNavigator();
 
 function AuthNavigator() {
   return (
-    <AuthStack.Navigator
-      screenOptions={{ headerShown: false }}
-    >
-
+    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
       {/* Splash */}
-      <AuthStack.Screen
-        name="Splash"
-        component={SplashScreen}
-      />
+      <AuthStack.Screen name="Splash" component={SplashScreen} />
 
       {/* Onboarding */}
-      <AuthStack.Screen
-        name="WelcomeScreen"
-        component={WelcomeScreen}
-      />
+      <AuthStack.Screen name="WelcomeScreen" component={WelcomeScreen} />
 
-      <AuthStack.Screen
-        name="TrackingScreen"
-        component={TrackingScreen}
-      />
+      <AuthStack.Screen name="TrackingScreen" component={TrackingScreen} />
 
-      <AuthStack.Screen
-        name="AlertScreen"
-        component={AlertScreen}
-      />
+      <AuthStack.Screen name="AlertScreen" component={AlertScreen} />
 
-      <AuthStack.Screen
-        name="ReadyScreen"
-        component={ReadyScreen}
-      />
+      <AuthStack.Screen name="ReadyScreen" component={ReadyScreen} />
 
-      <AuthStack.Screen
-        name="RoleSelectScreen"
-        component={RoleSelectScreen}
-      />
+      <AuthStack.Screen name="RoleSelectScreen" component={RoleSelectScreen} />
 
       {/* Patient Auth */}
       <AuthStack.Screen
@@ -129,47 +104,22 @@ function AuthNavigator() {
         component={PatientSignupFlow}
       />
 
-      <AuthStack.Screen
-        name="SignupSuccess"
-        component={SignupSuccessScreen}
-      />
+      <AuthStack.Screen name="SignupSuccess" component={SignupSuccessScreen} />
 
-      <AuthStack.Screen
-        name="Registerpage"
-        component={Registerpage}
-      />
+      <AuthStack.Screen name="Registerpage" component={Registerpage} />
 
       {/* Doctor Auth */}
-      <AuthStack.Screen
-        name="DoctorSignupFlow"
-        component={DoctorSignupFlow}
-      />
+      <AuthStack.Screen name="DoctorSignupFlow" component={DoctorSignupFlow} />
 
-      <AuthStack.Screen
-        name="signupDone"
-        component={SignupDoneScreen}
-      />
+      <AuthStack.Screen name="signupDone" component={SignupDoneScreen} />
 
-      <AuthStack.Screen
-        name="DoctorLogin"
-        component={DoctorLogin}
-      />
+      <AuthStack.Screen name="DoctorLogin" component={DoctorLogin} />
 
-      <AuthStack.Screen
-        name="ForgotPassword"
-        component={ForgotPassword}
-      />
+      <AuthStack.Screen name="ForgotPassword" component={ForgotPassword} />
 
-      <AuthStack.Screen
-        name="VerifyCode"
-        component={VerifyCode}
-      />
+      <AuthStack.Screen name="VerifyCode" component={VerifyCode} />
 
-      <AuthStack.Screen
-        name="ResetPassword"
-        component={ResetPassword}
-      />
-
+      <AuthStack.Screen name="ResetPassword" component={ResetPassword} />
     </AuthStack.Navigator>
   );
 }
@@ -180,26 +130,14 @@ function AuthNavigator() {
 
 function PatientNavigator() {
   return (
-    <PatientStack.Navigator
-      screenOptions={{ headerShown: false }}
-    >
-
+    <PatientStack.Navigator screenOptions={{ headerShown: false }}>
       {/* Main Tabs */}
-      <PatientStack.Screen
-        name="MainTabs"
-        component={TabsNavigation}
-      />
+      <PatientStack.Screen name="MainTabs" component={TabsNavigation} />
 
       {/* Patient Screens */}
-      <PatientStack.Screen
-        name="ChatScreen"
-        component={ChatScreen}
-      />
+      <PatientStack.Screen name="ChatScreen" component={ChatScreen} />
 
-      <PatientStack.Screen
-        name="medicins"
-        component={medicins}
-      />
+      <PatientStack.Screen name="medicins" component={medicins} />
 
       <PatientStack.Screen
         name="UploadFileScreen"
@@ -211,24 +149,14 @@ function PatientNavigator() {
         component={ManualInputScreen}
       />
 
-      <PatientStack.Screen
-        name="EditAccount"
-        component={EditAccount}
-      />
+      <PatientStack.Screen name="EditAccount" component={EditAccount} />
 
+      <PatientStack.Screen name="profileSettings" component={ProfileSettings} />
+      <PatientStack.Screen name="HelpScreen" component={HelpScreen} />
       <PatientStack.Screen
-        name="profileSettings"
-        component={ProfileSettings}
-      />
-      <PatientStack.Screen
-        name="HelpScreen"
-        component={HelpScreen}
-      />
-      <PatientStack.Screen
-      name="NotificationsScreen"
+        name="NotificationsScreen"
         component={NotificationsScreen}
       />
-
     </PatientStack.Navigator>
   );
 }
@@ -239,15 +167,9 @@ function PatientNavigator() {
 
 function DoctorNavigator() {
   return (
-    <DoctorStack.Navigator
-      screenOptions={{ headerShown: false }}
-    >
-
+    <DoctorStack.Navigator screenOptions={{ headerShown: false }}>
       {/* Doctor Tabs */}
-      <DoctorStack.Screen
-        name="DoctorTaps"
-        component={DoctorTaps}
-      />
+      <DoctorStack.Screen name="DoctorTaps" component={DoctorTaps} />
 
       {/* Doctor Home */}
       <DoctorStack.Screen
@@ -266,25 +188,16 @@ function DoctorNavigator() {
       />
 
       {/* Doctor Patients */}
-      <DoctorStack.Screen
-        name="PatientsScreen"
-        component={PatientsScreen}
-      />
+      <DoctorStack.Screen name="PatientsScreen" component={PatientsScreen} />
 
       <DoctorStack.Screen
         name="CriticalCondition"
         component={CriticalCondition}
       />
 
-      <DoctorStack.Screen
-        name="StableCondition"
-        component={StableCondition}
-      />
+      <DoctorStack.Screen name="StableCondition" component={StableCondition} />
 
-      <DoctorStack.Screen
-        name="FollowUpScreen"
-        component={FollowUpScreen}
-      />
+      <DoctorStack.Screen name="FollowUpScreen" component={FollowUpScreen} />
 
       <DoctorStack.Screen
         name="MedicationsScreen"
@@ -302,16 +215,9 @@ function DoctorNavigator() {
         component={EditProfileScreen}
       />
 
-      <DoctorStack.Screen
-        name="AccountSettings"
-        component={AccountSettings}
-      />
+      <DoctorStack.Screen name="AccountSettings" component={AccountSettings} />
 
-      <DoctorStack.Screen
-        name="HelpScreen"
-        component={HelpScreen}
-      />
-
+      <DoctorStack.Screen name="HelpScreen" component={HelpScreen} />
     </DoctorStack.Navigator>
   );
 }
@@ -321,12 +227,9 @@ function DoctorNavigator() {
 // ======================================================
 
 function RootNavigator() {
-
-  const {
-    isLoggedIn,
-    loading,
-    userRole,
-  } = useContext(AuthContext);
+  const { isLoggedIn, loading, userRole } = useContext(AuthContext);
+  console.log("isLoggedIn:", isLoggedIn);
+  console.log("userRole:", userRole);
 
   // Loading
   if (loading) {
@@ -345,15 +248,13 @@ function RootNavigator() {
 
   return (
     <NavigationContainer>
-
       {!isLoggedIn ? (
         <AuthNavigator />
-      ) : userRole === "doctor" ? (
+      ) : userRole==="doctor" ? (
         <DoctorNavigator />
       ) : (
         <PatientNavigator />
       )}
-
     </NavigationContainer>
   );
 }

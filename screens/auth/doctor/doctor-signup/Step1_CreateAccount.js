@@ -10,7 +10,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView }   from "react-native-safe-area-context";
 import SignupProgressBar from "../../../components/SignupProgressBar";
-
+import RadioButton from "../../../components/RadioButton";
 I18nManager.forceRTL(true);
 
 export default function Step1_BasicInfo({
@@ -20,12 +20,12 @@ export default function Step1_BasicInfo({
   
 }) {
   const navigation = useNavigation();
-  const isValid =
-    formData.email &&
-    formData.phoneNumber &&
-    formData.password &&
-    formData.password.length > 8 &&
-    formData.password === formData.confirmPassword;
+  // const isValid =
+  //   formData.email &&
+  //   formData.phoneNumber &&
+  //   formData.password &&
+  //   formData.password.length > 8 &&
+  //   formData.password === formData.confirmPassword;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -68,6 +68,30 @@ export default function Step1_BasicInfo({
             keyboardType="phone-pad"
           />
           <InputField
+            label="تاريخ الميلاد"
+            placeholder="YYYY-MM-DD"
+            value={formData.birthdate}
+            onChangeText={(val) => updateFormData("birthdate", val)}
+            keyboardType="default"
+            helperText="صيغة التاريخ المطلوب: YYYY-MM-DD"
+          />
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>النوع</Text>
+            <View style={styles.radioRow}>
+              <RadioButton
+                label="ذكر"
+                selected={formData.gender === "male"}
+                onPress={() => updateFormData("gender", "male")}
+              />
+              <RadioButton
+                label="أنثى"
+                selected={formData.gender === "female"}
+                onPress={() => updateFormData("gender", "female")}
+              />
+            </View>
+          </View>
+          <InputField
             label="كلمة السر"
             placeholder="كلمة السر"
             value={formData.password}
@@ -85,10 +109,17 @@ export default function Step1_BasicInfo({
           />
         </View>
 
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={[styles.nextButton, !isValid && styles.disabled]}
           onPress={nextStep}
           disabled={!isValid}
+        >
+          <Text style={styles.nextText}>التالي</Text>
+        </TouchableOpacity> */}
+        
+        <TouchableOpacity
+          style={styles.nextButton}
+          onPress={nextStep}
         >
           <Text style={styles.nextText}>التالي</Text>
         </TouchableOpacity>
@@ -203,6 +234,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#1A1A1A",
+    textAlign: "row-reverse",
+    alignSelf: "flex-end",
+    width: "100%",
+  },
+   radioRow: {
+    flexDirection: "row",
+    gap: 20,
+    marginTop: 10,
     textAlign: "row-reverse",
     alignSelf: "flex-end",
     width: "100%",
