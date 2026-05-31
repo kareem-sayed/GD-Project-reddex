@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const chatClient = axios.create({
-    baseURL: "https://chat-api.com",
+    baseURL: "http://18.185.229.235/",
 });
 
 export default chatClient;

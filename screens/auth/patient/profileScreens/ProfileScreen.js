@@ -8,7 +8,7 @@ import { PatientContext } from '../../../../backEnd/context/PatientContext';
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
-    const { profile } = useContext(PatientContext); 
+    const { profile ,medications} = useContext(PatientContext); 
 
   return (
     <SafeAreaView style={styles.container}>
@@ -77,8 +77,8 @@ export default function ProfileScreen() {
 
         <View style={styles.card}> 
           <View style={{ display: "flex", flexDirection: "column", width: "100%" }}> 
-            {profile?.treatments && profile.treatments.length > 0 ? (
-              profile.treatments.map((med, idx) => (
+            {medications.allMedications && medications.allMedications.length > 0 ? (
+              medications.allMedications.map((med, idx) => (
                 <View key={idx} style={styles.textContainer2}>      
                   <Text style={styles.medicineName}>{med.trim()}</Text>    
                   <Text style={styles.subText}>1 كبسولة - مرة يوميًا</Text>

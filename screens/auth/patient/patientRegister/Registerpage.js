@@ -49,7 +49,7 @@ export default function Registerpage({ navigation }) {
 
     if (token) {
 
-      await loginUser(token);
+      await loginUser(token, "patient");
 
       console.log("LOGIN SUCCESS");
 
