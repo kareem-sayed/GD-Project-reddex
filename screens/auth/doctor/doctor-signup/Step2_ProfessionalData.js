@@ -2,35 +2,38 @@ import React from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  ScrollView,
 } from "react-native";
 import SignupProgressBar from "../../../components/SignupProgressBar";
+import InputField from "../../../components/InputField";
 
-import { ScrollView } from "react-native";
 export default function Step2_ProfessionalInfo({
   formData,
   updateFormData,
   nextStep,
   prevStep,
 }) {
-  const isValid =
-    formData.fullName &&
-    formData.specialization &&
-    formData.yearsOfExperience &&
-    formData.licenseNumber;
+  // const isValid =
+  //   formData.fullName &&
+  //   formData.specialization &&
+  //   formData.nationalId &&
+  //   formData.birthDate &&
+  //   formData.gender &&
+  //   formData.yearsOfExperience &&
+  //   formData.licenseNumber;
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container}>
         <SignupProgressBar currentStep={2} />
-          <Text style={styles.title}>بياناتك المهنية</Text>
-          <Text style={styles.subtitle}>
-            المعلومات دي ضرورية علشان نوثق حسابك كدكتور.
-          </Text>
-        
+        <Text style={styles.title}>بياناتك المهنية</Text>
+        <Text style={styles.subtitle}>
+          المعلومات دي ضرورية علشان نوثق حسابك كدكتور.
+        </Text>
+
         <View style={styles.inputs}>
           <InputField
             label="الاسم"
@@ -38,6 +41,14 @@ export default function Step2_ProfessionalInfo({
             value={formData.fullName}
             onChangeText={(val) => updateFormData("fullName", val)}
           />
+          <InputField
+            label="الرقم القومي"
+            placeholder="رقمك القومي"
+            value={formData.ssn}
+            onChangeText={(val) => updateFormData("ssn", val)}
+            keyboardType="number-pad"
+          />
+          <Text style={styles.helperLabel}>تاكد انه بيتكون من 9 ارقام</Text>
           <InputField
             label="التخصص الطبي"
             placeholder="تخصصك الطبي"
@@ -59,11 +70,14 @@ export default function Step2_ProfessionalInfo({
         </View>
         <View>
           <View style={styles.buttons}>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={[styles.nextButton, !isValid && styles.disabled]}
               onPress={nextStep}
               disabled={!isValid}
             >
+              <Text style={styles.nextText}>التالي</Text>
+            </TouchableOpacity> */}
+            <TouchableOpacity style={styles.nextButton} onPress={nextStep}>
               <Text style={styles.nextText}>التالي</Text>
             </TouchableOpacity>
           </View>
@@ -78,22 +92,22 @@ export default function Step2_ProfessionalInfo({
   );
 }
 
-function InputField({ label, placeholder, value, onChangeText }) {
-  return (
-    <View style={styles.inputGroup}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput
-        style={styles.input}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor="#C8C8C8"
-        textAlign="right"
-        writingDirection="rtl"
-      />
-    </View>
-  );
-}
+// function InputField({ label, placeholder, value, onChangeText }) {
+//   return (
+//     <View style={styles.inputGroup}>
+//       <Text style={styles.label}>{label}</Text>
+//       <TextInput
+//         style={styles.input}
+//         value={value}
+//         onChangeText={onChangeText}
+//         placeholder={placeholder}
+//         placeholderTextColor="#C8C8C8"
+//         textAlign="right"
+//         writingDirection="rtl"
+//       />
+//     </View>
+//   );
+// }
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -135,7 +149,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#333",
     textAlign: "right",
-  writingDirection: "rtl", // مهم للـ placeholder يظهر صح
+    writingDirection: "rtl", // مهم للـ placeholder يظهر صح
   },
   buttons: {
     flexDirection: "row",
