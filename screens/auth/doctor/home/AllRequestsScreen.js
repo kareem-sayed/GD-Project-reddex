@@ -7,11 +7,12 @@ import {
   Image,
   TouchableOpacity,
   SafeAreaView,
+  Platform,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function AllRequestsScreen({ route, navigation }) {
-  const { requests } = route.params; // استقبال البيانات من الصفحة الرئيسية
+  const { requests } = route.params; //receive requests from previous screen
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
@@ -28,7 +29,27 @@ export default function AllRequestsScreen({ route, navigation }) {
         <Text style={styles.condition}>{item.condition}</Text>
       </View>
 
-      <Image source={item.image} style={styles.avatar} />
+      {/* <Image source={item.image} style={styles.avatar} /> */}
+      {item.image ? (
+        <Image source={{ uri: item.image }} style={styles.avatar} />
+      ) : (
+        <View
+          style={[
+            styles.avatar,
+            {
+              backgroundColor: "#E0E0E0",
+              justifyContent: "center",
+              alignItems: "center",
+            },
+          ]}
+        >
+          <MaterialCommunityIcons
+            name="account-circle-outline"
+            size={30}
+            color="#757575"
+          />
+        </View>
+      )}
     </View>
   );
 

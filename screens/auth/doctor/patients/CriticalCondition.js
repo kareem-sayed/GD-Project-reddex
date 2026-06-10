@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,14 +6,31 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
+  platform,
   SafeAreaView,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
-import { useEffect, useState } from "react";
 
-const CriticalCondition = ({ navigation }) => {
-  // بيانات المؤشرات الحيوية
+export default function CriticalCondition({ navigation }) {
+  const route = useRoute();
+  const { patient } = route.params || {};
+
+  // TODO: Backend does not provide critical patients endpoint
+  // data is hardcoded for demonstration purposes, will be replaced with real API data when available
+
+  const [currentMeds, setCurrentMeds] = useState([
+    { id: "1", name: "Rocaltrol", dose: "مرة يومياً" },
+    { id: "2", name: "Ferrous Sulfate 200 mg", dose: "مرة يومياً" },
+    { id: "3", name: "Folic Acid 5 mg", dose: "مرة يومياً" },
+  ]);
+
+  useEffect(() => {
+    if (route.params?.updatedMeds) {
+      setCurrentMeds(route.params.updatedMeds);
+    }
+  }, [route.params?.updatedMeds]);
+
   const vitals = [
     {
       id: "1",
@@ -76,20 +93,9 @@ const CriticalCondition = ({ navigation }) => {
       bg: "#F6FFF8",
     },
   ];
-  const route = useRoute();
-  const [currentMeds, setCurrentMeds] = useState([
-    { id: "1", name: "Rocaltrol", dose: "مرة يومياً" },
-    { id: "2", name: "Ferrous Sulfate 200 mg", dose: "مرة يومياً" },
-    { id: "3", name: "Folic Acid 5 mg", dose: "مرة يومياً" },
-  ]);
-  useEffect(() => {
-    if (route.params?.updatedMeds) {
-      setCurrentMeds(route.params.updatedMeds);
-    }
-  }, [route.params?.updatedMeds]);
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.popToTop()}>
           <Ionicons name="arrow-forward" size={24} color="#333" />
@@ -101,21 +107,43 @@ const CriticalCondition = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Patient Info Card */}
         <View style={styles.patientProfile}>
-          <Image
-            source={{ uri: "https://i.pravatar.cc/150?u=omar" }}
-            style={styles.avatar}
-          />
+          {patient?.image || patient?.photo || patient?.photoUrl ? (
+            <Image
+              source={{
+                uri: patient.image || patient.photo || patient.photoUrl,
+              }}
+              style={styles.avatar}
+            />
+          ) : (
+            <View
+              style={[
+                styles.avatar,
+                {
+                  backgroundColor: "#E0E0E0",
+                  justifyContent: "center",
+                  alignItems: "center",
+                },
+              ]}
+            >
+              <MaterialCommunityIcons
+                name="account-circle-outline"
+                size={32}
+                color="#757575"
+              />
+            </View>
+          )}
           <View style={styles.profileText}>
-            <Text style={styles.patientName}>عمر فاروق</Text>
+            <Text style={styles.patientName}>
+              {patient?.name || "عمر فاروق"}
+            </Text>
             <Text style={styles.patientSubInfo}>
-              26 سنة | ذكر | فصيلة الدم : +A
+              {patient?.age || "26"} سنة | {patient?.gender || "ذكر"} | فصيلة
+              الدم : {patient?.bloodType || "+A"}
             </Text>
           </View>
         </View>
 
-        {/* Medical Alert */}
         <View style={styles.alertBox}>
           <Text style={styles.alertTitle}>تنبيه طبي</Text>
           <Text style={styles.alertDesc}>
@@ -124,7 +152,6 @@ const CriticalCondition = ({ navigation }) => {
           </Text>
         </View>
 
-        {/* Health Status Tags */}
         <Text style={styles.sectionTitle}>الحالة الصحية</Text>
         <View style={styles.tagRow}>
           <View style={styles.tag}>
@@ -135,7 +162,6 @@ const CriticalCondition = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Vitals Grid */}
         <Text style={styles.sectionTitle}>المؤشرات الحيوية</Text>
         <View style={styles.vitalsGrid}>
           {vitals.map((item) => (
@@ -163,7 +189,6 @@ const CriticalCondition = ({ navigation }) => {
           ))}
         </View>
 
-        {/* AI Analysis */}
         <Text style={styles.sectionTitle}>تحليل الذكاء الاصطناعي</Text>
         <View style={styles.aiContainer}>
           <View style={styles.aiHeader}>
@@ -173,20 +198,17 @@ const CriticalCondition = ({ navigation }) => {
           </View>
           <Text style={styles.aiText}>
             التحاليل تشير إلى أن مستويات الحديد ومخزون الفيريتين مرتفعة جداً،
-            مما يعني وجود تراكم للحديد في الجسم يحتاج تدخل طبي سريع لتجنب أي
-            مضاعفات مستقبلية على الكبد والكلى...
+            مما يعني وجود تراكم للحديد في الجسم.
           </Text>
         </View>
 
-        {/* Medications Section */}
         <View style={styles.sectionHeaderRow}>
           <TouchableOpacity
             onPress={() =>
               navigation.navigate("MedicationsScreen", {
                 initialMeds: currentMeds,
-                onGoBack: (updatedMeds) => {
-                  setCurrentMeds(updatedMeds);
-                },
+                targetScreen: "CriticalCondition",
+                patientId: patient?.id,
               })
             }
           >
@@ -196,7 +218,6 @@ const CriticalCondition = ({ navigation }) => {
         </View>
 
         <View style={styles.medicationList}>
-          {/* نستخدم المصفوفة الجديدة هنا أيضاً بدلاً من النص الثابت */}
           {currentMeds.map((med) => (
             <View key={med.id} style={styles.medItem}>
               <Text style={styles.medTime}>{med.dose}</Text>
@@ -205,25 +226,17 @@ const CriticalCondition = ({ navigation }) => {
           ))}
         </View>
 
-        {/* Test Records */}
         <Text style={styles.sectionTitle}>سجل التحاليل</Text>
         <View style={styles.testList}>
           <View style={styles.testItem}>
             <Text style={styles.testDate}>15 أكتوبر</Text>
             <Text style={styles.testName}>CBC</Text>
           </View>
-          <View style={styles.testItem}>
-            <Text style={styles.testDate}>22 سبتمبر</Text>
-            <Text style={styles.testName}>Iron Panel / Serum Iron</Text>
-          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
-};
-
-export default CriticalCondition;
-
+}
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FDFCF8", paddingTop: 30 },
   header: {

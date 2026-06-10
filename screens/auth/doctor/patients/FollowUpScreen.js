@@ -6,89 +6,39 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
+  platform,
   SafeAreaView,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons"; 
 import { useRoute } from "@react-navigation/native";
 
-const FollowUpScreen = ({ navigation }) => {
+export default function FollowUpScreen({ navigation }) {
   const route = useRoute();
+  
+  // receive patient data from previous screen, if available
+  const { patient } = route.params || {};
 
-  // 1.state default to current meds (or some dummy data)
+  // TODO: Replace filtering logic when backend provides follow-up status API
+  
   const [currentMeds, setCurrentMeds] = useState([
     { id: "1", name: "Rocaltrol", dose: "مرة يومياً" },
     { id: "2", name: "Ferrous Sulfate 200 mg", dose: "مرة يومياً" },
     { id: "3", name: "Folic Acid 5 mg", dose: "مرة يومياً" },
   ]);
 
-  // 2. useEffect to update meds when coming back from MedicationsScreen
   useEffect(() => {
     if (route.params?.updatedMeds) {
       setCurrentMeds(route.params.updatedMeds);
     }
   }, [route.params?.updatedMeds]);
-  // vitals data (could also come from route params or API in real app)
+
   const vitals = [
-    {
-      id: "1",
-      label: "الحديد",
-      value: "180",
-      unit: "ug/dL",
-      status: "مرتفع",
-      color: "#F59F00",
-      trend: "trending-up",
-      bg: "#FFF9DB",
-    },
-    {
-      id: "2",
-      label: "الفيريتين",
-      value: "400",
-      unit: "ng/mL",
-      status: "مرتفع",
-      color: "#F59F00",
-      trend: "trending-up",
-      bg: "#FFF9DB",
-    },
-    {
-      id: "3",
-      label: "الهيموجلوبين",
-      value: "11.5",
-      unit: "g/dL",
-      status: "منخفض قليلاً",
-      color: "#F59F00",
-      trend: "trending-down",
-      bg: "#FFF9DB",
-    },
-    {
-      id: "4",
-      label: "ك. الدم البيضاء",
-      value: "11.0",
-      unit: "x10^9/L",
-      status: "مرتفع قليلاً",
-      color: "#F59F00",
-      trend: "trending-up",
-      bg: "#FFF9DB",
-    },
-    {
-      id: "5",
-      label: "الصفائح الدموية",
-      value: "240",
-      unit: "x10^3/uL",
-      status: "طبيعي",
-      color: "#2F9E44",
-      // trend: "remove",
-      bg: "#F6FFF8",
-    },
-    {
-      id: "6",
-      label: "ك. الدم الحمراء",
-      value: "4.6",
-      unit: "x10^6/uL",
-      status: "طبيعي",
-      color: "#2F9E44",
-      // trend: "remove",
-      bg: "#F6FFF8",
-    },
+    { id: "1", label: "الحديد", value: "180", unit: "ug/dL", status: "مرتفع", color: "#F59F00", trend: "trending-up", bg: "#FFF9DB" },
+    { id: "2", label: "الفيريتين", value: "400", unit: "ng/mL", status: "مرتفع", color: "#F59F00", trend: "trending-up", bg: "#FFF9DB" },
+    { id: "3", label: "الهيموجلوبين", value: "11.5", unit: "g/dL", status: "منخفض قليلاً", color: "#F59F00", trend: "trending-down", bg: "#FFF9DB" },
+    { id: "4", label: "ك. الدم البيضاء", value: "11.0", unit: "x10^9/L", status: "مرتفع قليلاً", color: "#F59F00", trend: "trending-up", bg: "#FFF9DB" },
+    { id: "5", label: "الصفائح الدموية", value: "240", unit: "x10^3/uL", status: "طبيعي", color: "#2F9E44", bg: "#F6FFF8" },
+    { id: "6", label: "ك. الدم الحمراء", value: "4.6", unit: "x10^6/uL", status: "طبيعي", color: "#2F9E44", bg: "#F6FFF8" },
   ];
 
   return (
@@ -101,20 +51,20 @@ const FollowUpScreen = ({ navigation }) => {
         <Text style={styles.headerTitle}>المرضى</Text>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Patient Profile */}
         <View style={styles.patientProfile}>
-          <Image
-            source={{ uri: "https://i.pravatar.cc/150?u=ahmed" }}
-            style={styles.avatar}
-          />
+          {patient?.image || patient?.photo || patient?.photoUrl ? (
+            <Image source={{ uri: patient.image || patient.photo || patient.photoUrl }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatar, { backgroundColor: "#E0E0E0", justifyContent: "center", alignItems: "center" }]}>
+              <MaterialCommunityIcons name="account-circle-outline" size={32} color="#757575" />
+            </View>
+          )}
           <View style={styles.profileText}>
-            <Text style={styles.patientName}>أحمد خالد</Text>
+            <Text style={styles.patientName}>{patient?.name || "أحمد خالد"}</Text>
             <Text style={styles.patientSubInfo}>
-              29 سنة | ذكر | فصيلة الدم : +AB
+              {patient?.age || "29"} سنة | {patient?.gender || "ذكر"} | فصيلة الدم : {patient?.bloodType || "+AB"}
             </Text>
           </View>
         </View>
@@ -142,14 +92,9 @@ const FollowUpScreen = ({ navigation }) => {
         <Text style={styles.sectionTitle}>المؤشرات الحيوية</Text>
         <View style={styles.vitalsGrid}>
           {vitals.map((item) => (
-            <View
-              key={item.id}
-              style={[styles.vitalCard, { borderStartColor: item.color }]}
-            >
+            <View key={item.id} style={[styles.vitalCard, { borderStartColor: item.color, backgroundColor: "#FCFCFC" }]}>
               <View style={styles.vitalHeader}>
-                {item.trend !== "remove" && (
-                  <Ionicons name={item.trend} size={16} color={item.color} />
-                )}
+                {item.trend && <Ionicons name={item.trend} size={16} color={item.color} />}
                 <Text style={styles.vitalLabel}>{item.label}</Text>
               </View>
               <View style={styles.vitalValueRow}>
@@ -157,34 +102,31 @@ const FollowUpScreen = ({ navigation }) => {
                 <Text style={styles.vitalUnit}>{item.unit}</Text>
               </View>
               <View style={[styles.statusBadge, { backgroundColor: item.bg }]}>
-                <Text style={[styles.statusText, { color: item.color }]}>
-                  {item.status}
-                </Text>
+                <Text style={[styles.statusText, { color: item.color }]}>{item.status}</Text>
               </View>
             </View>
           ))}
         </View>
 
-        {/* AI Analysis (Yellow Content) */}
+        {/* AI Analysis */}
         <Text style={styles.sectionTitle}>تحليل الذكاء الاصطناعي</Text>
         <View style={styles.aiContainer}>
           <View style={styles.aiIconCircle}>
             <Ionicons name="sparkles" size={18} color="#333" />
           </View>
           <Text style={styles.aiText}>
-            تحليل الدم الحالي يشير إلى أن مستويات الحديد ومخزون الفيريتين
-            مرتفعان قليلاً، مما يعني وجود تراكم بسيط للحديد في الجسم يحتاج
-            متابعة دورية ومراقبة النظام الغذائي... الحالة ليست حرجة لكنها تحتاج
-            مراقبة.
+            تحليل الدم الحالي يشير إلى أن مستويات الحديد ومخزون الفيريتين مرتفعان قليلاً... الحالة تحتاج مراقبة دورية.
           </Text>
         </View>
+
         {/* Medications Section */}
         <View style={styles.sectionHeaderRow}>
           <TouchableOpacity
             onPress={() =>
               navigation.navigate("MedicationsScreen", {
                 initialMeds: currentMeds,
-                targetScreen: "FollowUpScreen", 
+                targetScreen: "FollowUpScreen",
+                patientId: patient?.id
               })
             }
           >
@@ -204,7 +146,7 @@ const FollowUpScreen = ({ navigation }) => {
       </ScrollView>
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FDFCF8", paddingTop: 30 },
@@ -356,4 +298,3 @@ const styles = StyleSheet.create({
   medTime: { fontSize: 12, color: "#AAA" },
 });
 
-export default FollowUpScreen;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   StyleSheet,
   View,
@@ -9,10 +9,22 @@ import {
   Platform,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { AuthContext } from "../../../../backEnd/context/AuthContext"; // ✅ استيراد الـ AuthContext
 
 export default function SettingsScreen({ navigation }) {
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
+  const { logoutUser } = useContext(AuthContext); // ✅ استدعاء الـ logoutUser من الـ Context
 
+  // const handleLogout = () => {
+  //   console.log("LOG: removeToken() triggered.");
+  //   // هنا يتم استدعاء مسح الـ Token الفعلي مستقبلاً
+  //   if (navigation.canGoBack()) {
+  //     navigation.popToTop();
+  //   }
+  // };
+  const handleLogout = async () => {
+    await logoutUser();
+  };
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -24,25 +36,21 @@ export default function SettingsScreen({ navigation }) {
           >
             <Ionicons name="arrow-forward" size={24} color="#641919" />
           </TouchableOpacity>
-
           <Text style={styles.headerTitle}>إعدادات الحساب</Text>
         </View>
       </View>
 
       <View style={styles.content}>
-        {/* Section favorites */}
         <Text style={styles.sectionLabel}>التفضيلات</Text>
 
         <View style={styles.card}>
-          {/*Notifications*/}
+          {/* Notifications */}
           <View style={styles.row}>
             <Switch
               trackColor={{ false: "#D1D1D1", true: "#7D1C1C" }}
               thumbColor={"#FFF"}
               ios_backgroundColor="#D1D1D1"
-              onValueChange={() =>
-                setIsNotificationsEnabled((previousState) => !previousState)
-              }
+              onValueChange={() => setIsNotificationsEnabled((prev) => !prev)}
               value={isNotificationsEnabled}
             />
             <Text style={styles.rowText}>الإشعارات</Text>
@@ -50,23 +58,22 @@ export default function SettingsScreen({ navigation }) {
 
           <View style={styles.divider} />
 
-          {/*languages*/}
+          {/* Languages */}
           <TouchableOpacity
             style={[styles.row, { flexDirection: "row-reverse" }]}
           >
             <Ionicons name="chevron-down" size={20} color="#666" />
-            <View style={{ alignItems: "flex-start" }}>
+            <View style={{ alignItems: "flex-end" }}>
               <Text style={styles.rowText}>اللغات</Text>
               <Text style={styles.subText}>قم باختيار لغتك المفضلة</Text>
             </View>
           </TouchableOpacity>
         </View>
 
-        {/* Account Section */}
         <Text style={[styles.sectionLabel, { marginTop: 25 }]}>الحساب</Text>
 
         <View style={styles.card}>
-          <TouchableOpacity style={styles.row}>
+          <TouchableOpacity style={styles.row} onPress={handleLogout}>
             <MaterialIcons name="logout" size={22} color="#D32F2F" />
             <Text style={[styles.rowText, { color: "#D32F2F" }]}>
               تسجيل خروج
@@ -74,7 +81,6 @@ export default function SettingsScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Edit Account Information */}
         <TouchableOpacity
           style={[
             styles.card,
@@ -85,9 +91,10 @@ export default function SettingsScreen({ navigation }) {
               paddingVertical: 18,
             },
           ]}
+          onPress={() => navigation.navigate("EditProfileScreen")}
         >
-          <Text style={styles.rowText}>تعديل معلومات الحساب</Text>
           <Ionicons name="chevron-back" size={20} color="#333" />
+          <Text style={styles.rowText}>تعديل معلومات الحساب</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   StyleSheet,
   Text,
@@ -9,169 +10,239 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Dimensions,
+  ActivityIndicator,
+  Alert,
+  platform,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+
+// API: Fetch doctor patients
+import { getDoctorPatients } from "../../../../backEnd/api/services/doctorApi";
 
 const { width } = Dimensions.get("window");
 
-const PatientsScreen = ({ navigation }) => {
-  // fake data for patients
-  const patients = [
+export default function PatientsScreen({ navigation }) {
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // مصفوفة اختبارية (Mock Data) ثابتة ومنعزلة للتطوير والاختبار والـ Fallback
+  const mockPatients = [
     {
-      id: "1",
-      name: "عمر فاروق",
-      status: "حرج",
-      statusBg: "#FFDCE0",
-      statusText: "#E63946",
+      id: "patient_stable_1",
+      name: "سارة أمين (تجربة - مستقر)",
+      status: "STABLE",
+      age: 24,
+      gender: "أنثى",
+      bloodType: "+B",
       update: "منذ ساعتين",
-      borderColor: "#E63946",
-      aiAlert: true,
-      aiMessage: "ارتفاع ملحوظ في نسبة الحديد ومخزون الفيريتين",
-      image: "https://i.pravatar.cc/150?u=omar",
+      image: null,
     },
     {
-      id: "2",
-      name: "أحمد خالد",
-      status: "يحتاج متابعة",
-      statusBg: "#FFF9DB",
-      statusText: "#F59F00",
-      update: "منذ ساعة",
-      borderColor: "#F59F00",
+      id: "patient_follow_2",
+      name: "أحمد خالد (تجربة - متابعة)",
+      status: "FOLLOW_UP",
+      age: 29,
+      gender: "ذكر",
+      bloodType: "+AB",
+      update: "منذ 5 دقائق",
       aiAlert: true,
-      aiMessage: "انخفاض طفيف في بعض المؤشرات",
-      image: "https://i.pravatar.cc/150?u=ahmed",
+      aiMessage: "ارتفاع معتدل في الحديد والفيريتين",
     },
     {
-      id: "3",
-      name: "سارة أمين",
-      status: "مستقر",
-      statusBg: "#D3F9D8",
-      statusText: "#2F9E44",
-      update: "الأمس",
-      borderColor: "#2F9E44",
-      aiAlert: false,
-      image: "https://i.pravatar.cc/150?u=sara",
+      id: "patient_critical_3",
+      name: "عمر فاروق (تجربة - حرج)",
+      status: "CRITICAL",
+      age: 26,
+      gender: "ذكر",
+      bloodType: "+A",
+      update: "الآن",
+      aiAlert: true,
+      aiMessage: "تنبيه: مؤشرات غير مستقرة، يرجى التدخل العاجل",
     },
   ];
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      const fetchPatients = async () => {
+        try {
+          if (isActive) setLoading(true);
+          console.log("LOG: Fetching doctor patients...");
+          const res = await getDoctorPatients();
+
+          // تأمين استخراج المصفوفة أياً كان شكل كائن الـ Response المغلف من الباك إند
+          const realData = res?.data?.data?.data || res?.data?.data || res?.data || [];
+
+          if (isActive) {
+            // دمج ذكي: إذا كانت البيانات الحقيقية من السيرفر فارغة نعتمد الـ mockPatients
+            setPatients(Array.isArray(realData) && realData.length > 0 ? realData : mockPatients);
+          }
+        } catch (error) {
+          console.log("LOG: Error fetching doctor patients:", error);
+          if (isActive) {
+            // حتى عند حدوث خطأ شبكة، نعرض البيانات الوهمية لكي لا تتعطل شاشتكِ أثناء التطوير
+            setPatients(mockPatients);
+          }
+        } finally {
+          if (isActive) setLoading(false);
+        }
+      };
+
+      fetchPatients();
+
+      return () => {
+        isActive = false; // تنظيف الـ Effect لمنع تحديث الـ State بعد مغادرة الشاشة
+      };
+    }, [])
+  );
+
   const handlePress = (item) => {
-    switch (item.status) {
+    const status = item.status || "مستقر";
+
+    switch (status) {
       case "حرج":
-        navigation.navigate("CriticalCondition");
+      case "CRITICAL":
+        navigation.navigate("CriticalCondition", { patient: item });
         break;
       case "يحتاج متابعة":
-        navigation.navigate("FollowUpScreen");
+      case "FOLLOW_UP":
+        navigation.navigate("FollowUpScreen", { patient: item });
         break;
       case "مستقر":
-        navigation.navigate("StableCondition");
+      case "STABLE":
+        navigation.navigate("StableCondition", { patient: item });
         break;
       default:
+        navigation.navigate("StableCondition", { patient: item });
         break;
     }
   };
+
+  // تأمين الفلترة: التحقق أن المرضى مصفوفة أولاً لتفادي الـ TypeError تماماً
+  const filteredPatients = Array.isArray(patients)
+    ? patients.filter((p) => p.name?.toLowerCase().includes(searchQuery.toLowerCase()))
+    : [];
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-forward" size={24} color="#641919" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>المرضى</Text>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Stats Section */}
-        <View style={styles.statsRow}>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>5</Text>
-            <Text style={styles.statLabel}>مريض حالي</Text>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#641919" />
+        </View>
+      ) : (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+          
+          {/* Stats Section */}
+          <View style={styles.statsRow}>
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>{patients.length}</Text>
+              <Text style={styles.statLabel}>مريض حالي</Text>
+            </View>
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>124</Text>
+              <Text style={styles.statLabel}>كل المرضى</Text>
+            </View>
           </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>124</Text>
-            <Text style={styles.statLabel}>كل المرضى</Text>
+
+          {/* Search Section */}
+          <View style={styles.titleWrapper}>
+            <Text style={styles.sectionTitle}>ابحث عن مريض</Text>
           </View>
-        </View>
 
-        {/* Search Section */}
-        <View style={styles.test}>
-          <Text style={styles.sectionTitle}>ابحث عن مريض</Text>
-        </View>
+          <View style={styles.searchContainer}>
+            <Ionicons name="search-outline" size={20} color="#C4C4C4" />
+            <TextInput
+              placeholder="بحث"
+              style={styles.searchInput}
+              placeholderTextColor="#C4C4C4"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
 
-        <View style={styles.searchContainer}>
-          <Ionicons name="search-outline" size={20} color="#C4C4C4" />
-          <TextInput
-            placeholder="بحث"
-            style={styles.searchInput}
-            placeholderTextColor="#C4C4C4"
-          />
-        </View>
+          {/* List Title */}
+          <View style={styles.titleWrapper}>
+            <Text style={styles.sectionTitle}>مرضى تحت المتابعة</Text>
+          </View>
 
-        {/* List Title */}
-        <View style={styles.test}>
-          <Text style={styles.sectionTitle}>مرضى تحت المتابعة</Text>
-        </View>
-        {/* Patient Cards */}
-        {patients.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            activeOpacity={0.8}
-            onPress={() => handlePress(item)}
-            // style={[styles.card, { borderRightColor: item.borderColor }]}
-            style={[styles.card, { borderStartColor: item.borderColor }]}
-          >
-            <View style={styles.cardHeader}>
-              <View style={styles.patientInfo}>
-                <View style={styles.nameRow}>
-                  <View
-                    style={[styles.badge, { backgroundColor: item.statusBg }]}
-                  >
-                    <Text
-                      style={[styles.badgeText, { color: item.statusText }]}
-                    >
-                      {item.status}
-                    </Text>
+          {/* Patient Cards */}
+          {filteredPatients.length > 0 ? (
+            filteredPatients.map((item) => {
+              const isCritical = item.status === "حرج" || item.status === "CRITICAL";
+              const isFollowUp = item.status === "يحتاج متابعة" || item.status === "FOLLOW_UP";
+
+              const borderColor = isCritical ? "#E63946" : isFollowUp ? "#F59F00" : "#2F9E44";
+              const statusBg = isCritical ? "#FFDCE0" : isFollowUp ? "#FFF9DB" : "#D3F9D8";
+              const statusText = isCritical ? "#E63946" : isFollowUp ? "#F59F00" : "#2F9E44";
+              const statusLabel = isCritical ? "حرج" : isFollowUp ? "يحتاج متابعة" : "مستقر";
+
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  activeOpacity={0.8}
+                  onPress={() => handlePress(item)}
+                  style={[styles.card, { borderStartColor: borderColor }]}
+                >
+                  <View style={styles.cardHeader}>
+                    <View style={styles.patientInfo}>
+                      <View style={styles.nameRow}>
+                        <View style={[styles.badge, { backgroundColor: statusBg }]}>
+                          <Text style={[styles.badgeText, { color: statusText }]}>
+                            {statusLabel}
+                          </Text>
+                        </View>
+                        <Text style={styles.patientName}>{item.name}</Text>
+                      </View>
+                      <Text style={styles.updateText}>
+                        آخر تحديث : {item.update || "منذ فترة وجيزة"}
+                      </Text>
+                    </View>
+
+                    {item.image || item.photo || item.photoUrl ? (
+                      <Image
+                        source={{ uri: item.image || item.photo || item.photoUrl }}
+                        style={styles.avatar}
+                      />
+                    ) : (
+                      <View style={[styles.avatar, styles.fallbackAvatar]}>
+                        <MaterialCommunityIcons name="account-circle-outline" size={32} color="#757575" />
+                      </View>
+                    )}
                   </View>
 
-                  <Text style={styles.patientName}>{item.name}</Text>
-                </View>
-                <Text style={styles.updateText}>آخر تحديث : {item.update}</Text>
-              </View>
-              <Image source={{ uri: item.image }} style={styles.avatar} />
-            </View>
-
-            {item.aiAlert && (
-              <View
-                style={[
-                  styles.aiBox,
-                  { backgroundColor: item.id === "1" ? "#FFF5F5" : "#FFFFF0" },
-                ]}
-              >
-                <Ionicons
-                  name="arrow-back"
-                  size={18}
-                  color="#666"
-                  style={{ marginRight: 10 }}
-                />
-                <View style={{ flex: 1, alignItems: "flex-start" }}>
-                  <Text style={[styles.aiTitle, { textAlign: "right" }]}>
-                    تم ملاحظة تغييرات بواسطة AI
-                  </Text>
-                  <Text style={[styles.aiDesc, { color: item.statusText }]}>
-                    {item.aiMessage}
-                  </Text>
-                </View>
-              </View>
-            )}
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+                  {/* تنبيه الذكاء الاصطناعي */}
+                  {item.aiAlert && (
+                    <View style={[styles.aiBox, { backgroundColor: isCritical ? "#FFF5F5" : "#FFFFF0" }]}>
+                      <Ionicons name="arrow-back" size={18} color="#666" style={{ marginRight: 10 }} />
+                      <View style={{ flex: 1, alignItems: "flex-start" }}>
+                        <Text style={styles.aiTitle}>تم ملاحظة تغييرات بواسطة AI</Text>
+                        <Text style={[styles.aiDesc, { color: statusText }]}>
+                          {item.aiMessage || "يرجى مراجعة المؤشرات الحيوية بشكل عاجل."}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })
+          ) : (
+            <Text style={styles.emptyText}>لا يوجد مرضى مطابقين للبحث حالياً.</Text>
+          )}
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
-};
-
-export default PatientsScreen;
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -243,7 +314,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    textAlign: "right",
+    textAlign: "left",
     marginBottom: 12,
     marginTop: 5,
     color: "#1A1A1A",

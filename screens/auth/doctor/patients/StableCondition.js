@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,88 +6,40 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
+  platform,
   SafeAreaView,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons"; 
 import { useRoute } from "@react-navigation/native";
 
-const StableCondition = ({ navigation }) => {
+export default function StableCondition({ navigation }) {
   const route = useRoute();
+  const { patient } = route.params || {};
 
-  // 1. تعريف حالة الأدوية (State) مع بيانات افتراضية
+  // TODO: Backend does not provide stable classification endpoint
+  // vitals and test records will remain static locally due to lack of dedicated Endpoint.
   const [currentMeds, setCurrentMeds] = useState([
     { id: "1", name: "Multi-Vitamin", dose: "مرة يومياً" },
     { id: "2", name: "Omega 3", dose: "مرة يومياً" },
   ]);
-  // 2. استقبال البيانات المحدثة من صفحة MedicationsScreen
+
   useEffect(() => {
     if (route.params?.updatedMeds) {
       setCurrentMeds(route.params.updatedMeds);
     }
   }, [route.params?.updatedMeds]);
-  // بيانات المؤشرات الطبيعية (أخضر)
+
   const vitals = [
-    {
-      id: "1",
-      label: "الحديد",
-      value: "85",
-      unit: "ug/dL",
-      status: "طبيعي",
-      color: "#2F9E44",
-      bg: "#F6FFF8",
-      trend: "remove",
-    },
-    {
-      id: "2",
-      label: "الفيريتين",
-      value: "80",
-      unit: "ng/mL",
-      status: "طبيعي",
-      color: "#2F9E44",
-      bg: "#F6FFF8",
-      // trend: "remove",
-    },
-    {
-      id: "3",
-      label: "الهيموجلوبين",
-      value: "14",
-      unit: "g/dL",
-      status: "طبيعي",
-      color: "#2F9E44",
-      bg: "#F6FFF8",
-    },
-    {
-      id: "4",
-      label: "ك. الدم البيضاء",
-      value: "6.5",
-      unit: "x10^9/L",
-      status: "طبيعي",
-      color: "#2F9E44",
-      bg: "#F6FFF8",
-    },
-    {
-      id: "5",
-      label: "الصفائح الدموية",
-      value: "250",
-      unit: "x10^3/uL",
-      status: "طبيعي",
-      color: "#2F9E44",
-      bg: "#F6FFF8",
-    },
-    {
-      id: "6",
-      label: "ك. الدم الحمراء",
-      value: "5.0",
-      unit: "x10^6/uL",
-      status: "طبيعي",
-      color: "#2F9E44",
-      bg: "#F6FFF8",
-    },
+    { id: "1", label: "الحديد", value: "85", unit: "ug/dL", status: "طبيعي", color: "#2F9E44", bg: "#F6FFF8" },
+    { id: "2", label: "الفيريتين", value: "80", unit: "ng/mL", status: "طبيعي", color: "#2F9E44", bg: "#F6FFF8" },
+    { id: "3", label: "الهيموجلوبين", value: "14", unit: "g/dL", status: "طبيعي", color: "#2F9E44", bg: "#F6FFF8" },
+    { id: "4", label: "ك. الدم البيضاء", value: "6.5", unit: "x10^9/L", status: "طبيعي", color: "#2F9E44", bg: "#F6FFF8" },
+    { id: "5", label: "الصفائح الدموية", value: "250", unit: "x10^3/uL", status: "طبيعي", color: "#2F9E44", bg: "#F6FFF8" },
+    { id: "6", label: "ك. الدم الحمراء", value: "5.0", unit: "x10^6/uL", status: "طبيعي", color: "#2F9E44", bg: "#F6FFF8" },
   ];
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-forward" size={24} color="#333" />
@@ -95,30 +47,27 @@ const StableCondition = ({ navigation }) => {
         <Text style={styles.headerTitle}>المرضى</Text>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Patient Profile */}
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.patientProfile}>
-          <Image
-            source={{ uri: "https://i.pravatar.cc/150?u=sara" }}
-            style={styles.avatar}
-          />
+          {patient?.image || patient?.photo || patient?.photoUrl ? (
+            <Image source={{ uri: patient.image || patient.photo || patient.photoUrl }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatar, { backgroundColor: "#E0E0E0", justifyContent: "center", alignItems: "center" }]}>
+              <MaterialCommunityIcons name="account-circle-outline" size={32} color="#757575" />
+            </View>
+          )}
           <View style={styles.profileText}>
-            <Text style={styles.patientName}>سارة أمين</Text>
+            <Text style={styles.patientName}>{patient?.name || "سارة أمين"}</Text>
             <Text style={styles.patientSubInfo}>
-              24 سنة | أنثى | فصيلة الدم : +B
+              {patient?.age || "24"} سنة | {patient?.gender || "أنثى"} | فصيلة الدم : {patient?.bloodType || "+B"}
             </Text>
           </View>
         </View>
 
-        {/* Stable Status Badge */}
         <View style={styles.stableAlertBox}>
           <Text style={styles.stableAlertText}>الحالة مستقرة</Text>
         </View>
 
-        {/* Health Status Tags */}
         <Text style={styles.sectionTitle}>الحالة الصحية</Text>
         <View style={styles.tagRow}>
           <View style={styles.tag}>
@@ -129,50 +78,39 @@ const StableCondition = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Vitals Grid */}
         <Text style={styles.sectionTitle}>المؤشرات الحيوية</Text>
         <View style={styles.vitalsGrid}>
           {vitals.map((item) => (
-            <View
-              key={item.id}
-              style={[styles.vitalCard, { borderStartColor: item.color }]}
-            >
+            <View key={item.id} style={[styles.vitalCard, { borderStartColor: item.color, backgroundColor: "#FCFCFC" }]}>
               <Text style={styles.vitalLabel}>{item.label}</Text>
               <View style={styles.vitalValueRow}>
                 <Text style={styles.vitalValue}>{item.value}</Text>
                 <Text style={styles.vitalUnit}>{item.unit}</Text>
-                
               </View>
               <View style={[styles.statusBadge, { backgroundColor: item.bg }]}>
-                <Text style={[styles.statusText, { color: item.color }]}>
-                  {item.status}
-                </Text>
+                <Text style={[styles.statusText, { color: item.color }]}>{item.status}</Text>
               </View>
             </View>
           ))}
         </View>
 
-        {/* AI Analysis (Green Content) */}
         <Text style={styles.sectionTitle}>تحليل الذكاء الاصطناعي</Text>
         <View style={styles.aiContainer}>
-          <View style={styles.aiHeader}>
-            <View style={styles.aiIconCircle}>
-              <Ionicons name="sparkles" size={18} color="#333" />
-            </View>
+          <View style={styles.aiIconCircle}>
+            <Ionicons name="sparkles" size={18} color="#333" />
           </View>
           <Text style={styles.aiText}>
-            تحليل الدم يظهر أن جميع المؤشرات ضمن المستويات الطبيعية، بما في ذلك
-            الحديد ومخزون الفيريتين... مما يعكس وظائف دمية مستقرة ونظام مناعي
-            صحي. الحالة مستقرة تماماً.
+            تحليل الدم يظهر أن جميع المؤشرات ضمن المستويات الطبيعية، الحالة مستقرة تماماً.
           </Text>
         </View>
-        {/* Medications Section - الجزء اللي عدلناه */}
+
         <View style={styles.sectionHeaderRow}>
           <TouchableOpacity
             onPress={() =>
               navigation.navigate("MedicationsScreen", {
                 initialMeds: currentMeds,
-                targetScreen: "StableCondition", // نمرر اسم الشاشة عشان نرجع لها
+                targetScreen: "StableCondition",
+                patientId: patient?.id
               })
             }
           >
@@ -189,7 +127,7 @@ const StableCondition = ({ navigation }) => {
             </View>
           ))}
         </View>
-        {/* Test Records */}
+
         <Text style={styles.sectionTitle}>سجل التحاليل</Text>
         <View style={styles.testList}>
           <View style={styles.testItem}>
@@ -200,7 +138,356 @@ const StableCondition = ({ navigation }) => {
       </ScrollView>
     </SafeAreaView>
   );
-};
+}
+
+// import React, { useState, useEffect } from "react";
+// import {
+//   StyleSheet,
+//   Text,
+//   View,
+//   ScrollView,
+//   Image,
+//   TouchableOpacity,
+//   SafeAreaView,
+//   MaterialCommunityIcons
+// } from "react-native";
+// import { Ionicons } from "@expo/vector-icons";
+// import { useRoute } from "@react-navigation/native";
+
+// const StableCondition = ({ navigation }) => {
+//   const route = useRoute();
+//   const { patient } = route.params || {};
+
+//   // TODO: Backend does not provide stable classification endpoint
+//   // السجل والمؤشرات ستبقى ثابتة محلياً لعدم وجود Endpoint مخصص.
+
+//   const [currentMeds, setCurrentMeds] = useState([
+//     { id: "1", name: "Multi-Vitamin", dose: "مرة يومياً" },
+//     { id: "2", name: "Omega 3", dose: "مرة يومياً" },
+//   ]);
+
+//   useEffect(() => {
+//     if (route.params?.updatedMeds) {
+//       setCurrentMeds(route.params.updatedMeds);
+//     }
+//   }, [route.params?.updatedMeds]);
+
+//   const vitals = [
+//     { id: "1", label: "الحديد", value: "85", unit: "ug/dL", status: "طبيعي", color: "#2F9E44", bg: "#F6FFF8" },
+//     { id: "2", label: "الفيريتين", value: "80", unit: "ng/mL", status: "طبيعي", color: "#2F9E44", bg: "#F6FFF8" },
+//     { id: "3", label: "الهيموجلوبين", value: "14", unit: "g/dL", status: "طبيعي", color: "#2F9E44", bg: "#F6FFF8" },
+//     { id: "4", label: "ك. الدم البيضاء", value: "6.5", unit: "x10^9/L", status: "طبيعي", color: "#2F9E44", bg: "#F6FFF8" },
+//     { id: "5", label: "الصفائح الدموية", value: "250", unit: "x10^3/uL", status: "طبيعي", color: "#2F9E44", bg: "#F6FFF8" },
+//     { id: "6", label: "ك. الدم الحمراء", value: "5.0", unit: "x10^6/uL", status: "طبيعي", color: "#2F9E44", bg: "#F6FFF8" },
+//   ];
+
+//   return (
+//     <SafeAreaView style={styles.container}>
+//       <View style={styles.header}>
+//         <TouchableOpacity onPress={() => navigation.goBack()}>
+//           <Ionicons name="arrow-forward" size={24} color="#333" />
+//         </TouchableOpacity>
+//         <Text style={styles.headerTitle}>المرضى</Text>
+//       </View>
+
+//       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+//         <View style={styles.patientProfile}>
+//           {patient?.image || patient?.photo || patient?.photoUrl ? (
+//             <Image source={{ uri: patient.image || patient.photo || patient.photoUrl }} style={styles.avatar} />
+//           ) : (
+//             <View style={[styles.avatar, { backgroundColor: "#E0E0E0", justifyContent: "center", alignItems: "center" }]}>
+//               <MaterialCommunityIcons name="account-circle-outline" size={32} color="#757575" />
+//             </View>
+//           )}
+//           <View style={styles.profileText}>
+//             <Text style={styles.patientName}>{patient?.name || "سارة أمين"}</Text>
+//             <Text style={styles.patientSubInfo}>
+//               {patient?.age || "24"} سنة | {patient?.gender || "أنثى"} | فصيلة الدم : {patient?.bloodType || "+B"}
+//             </Text>
+//           </View>
+//         </View>
+
+//         <View style={styles.stableAlertBox}>
+//           <Text style={styles.stableAlertText}>الحالة مستقرة</Text>
+//         </View>
+
+//         <Text style={styles.sectionTitle}>الحالة الصحية</Text>
+//         <View style={styles.tagRow}>
+//           <View style={styles.tag}>
+//             <Text style={styles.tagText}>أنيميا</Text>
+//           </View>
+//           <View style={styles.tag}>
+//             <Text style={styles.tagText}>حمى البحر المتوسط</Text>
+//           </View>
+//         </View>
+
+//         <Text style={styles.sectionTitle}>المؤشرات الحيوية</Text>
+//         <View style={styles.vitalsGrid}>
+//           {vitals.map((item) => (
+//             <View key={item.id} style={[styles.vitalCard, { borderStartColor: item.color }]}>
+//               <Text style={styles.vitalLabel}>{item.label}</Text>
+//               <View style={styles.vitalValueRow}>
+//                 <Text style={styles.vitalValue}>{item.value}</Text>
+//                 <Text style={styles.vitalUnit}>{item.unit}</Text>
+//               </View>
+//               <View style={[styles.statusBadge, { backgroundColor: item.bg }]}>
+//                 <Text style={[styles.statusText, { color: item.color }]}>{item.status}</Text>
+//               </View>
+//             </View>
+//           ))}
+//         </View>
+
+//         <Text style={styles.sectionTitle}>تحليل الذكاء الاصطناعي</Text>
+//         <View style={styles.aiContainer}>
+//           <View style={styles.aiIconCircle}>
+//             <Ionicons name="sparkles" size={18} color="#333" />
+//           </View>
+//           <Text style={styles.aiText}>
+//             تحليل الدم يظهر أن جميع المؤشرات ضمن المستويات الطبيعية، الحالة مستقرة تماماً.
+//           </Text>
+//         </View>
+
+//         <View style={styles.sectionHeaderRow}>
+//           <TouchableOpacity
+//             onPress={() =>
+//               navigation.navigate("MedicationsScreen", {
+//                 initialMeds: currentMeds,
+//                 targetScreen: "StableCondition",
+//                 patientId: patient?.id
+//               })
+//             }
+//           >
+//             <Text style={styles.editBtn}>تعديل</Text>
+//           </TouchableOpacity>
+//           <Text style={styles.sectionTitle}>الأدوية</Text>
+//         </View>
+
+//         <View style={styles.medicationList}>
+//           {currentMeds.map((med) => (
+//             <View key={med.id} style={styles.medItem}>
+//               <Text style={styles.medTime}>{med.dose}</Text>
+//               <Text style={styles.medName}>{med.name}</Text>
+//             </View>
+//           ))}
+//         </View>
+
+//         <Text style={styles.sectionTitle}>سجل التحاليل</Text>
+//         <View style={styles.testList}>
+//           <View style={styles.testItem}>
+//             <Text style={styles.testDate}>10 مارس</Text>
+//             <Text style={styles.testName}>CBC</Text>
+//           </View>
+//         </View>
+//       </ScrollView>
+//     </SafeAreaView>
+//   );
+// };
+
+// export default StableCondition;
+
+// import React, { useState, useEffect } from "react";
+// import {
+//   StyleSheet,
+//   Text,
+//   View,
+//   ScrollView,
+//   Image,
+//   TouchableOpacity,
+//   SafeAreaView,
+// } from "react-native";
+// import { Ionicons } from "@expo/vector-icons";
+// import { useRoute } from "@react-navigation/native";
+
+// const StableCondition = ({ navigation }) => {
+//   const route = useRoute();
+
+//   // 1. تعريف حالة الأدوية (State) مع بيانات افتراضية
+//   const [currentMeds, setCurrentMeds] = useState([
+//     { id: "1", name: "Multi-Vitamin", dose: "مرة يومياً" },
+//     { id: "2", name: "Omega 3", dose: "مرة يومياً" },
+//   ]);
+//   // 2. استقبال البيانات المحدثة من صفحة MedicationsScreen
+//   useEffect(() => {
+//     if (route.params?.updatedMeds) {
+//       setCurrentMeds(route.params.updatedMeds);
+//     }
+//   }, [route.params?.updatedMeds]);
+//   // بيانات المؤشرات الطبيعية (أخضر)
+//   const vitals = [
+//     {
+//       id: "1",
+//       label: "الحديد",
+//       value: "85",
+//       unit: "ug/dL",
+//       status: "طبيعي",
+//       color: "#2F9E44",
+//       bg: "#F6FFF8",
+//       trend: "remove",
+//     },
+//     {
+//       id: "2",
+//       label: "الفيريتين",
+//       value: "80",
+//       unit: "ng/mL",
+//       status: "طبيعي",
+//       color: "#2F9E44",
+//       bg: "#F6FFF8",
+//       // trend: "remove",
+//     },
+//     {
+//       id: "3",
+//       label: "الهيموجلوبين",
+//       value: "14",
+//       unit: "g/dL",
+//       status: "طبيعي",
+//       color: "#2F9E44",
+//       bg: "#F6FFF8",
+//     },
+//     {
+//       id: "4",
+//       label: "ك. الدم البيضاء",
+//       value: "6.5",
+//       unit: "x10^9/L",
+//       status: "طبيعي",
+//       color: "#2F9E44",
+//       bg: "#F6FFF8",
+//     },
+//     {
+//       id: "5",
+//       label: "الصفائح الدموية",
+//       value: "250",
+//       unit: "x10^3/uL",
+//       status: "طبيعي",
+//       color: "#2F9E44",
+//       bg: "#F6FFF8",
+//     },
+//     {
+//       id: "6",
+//       label: "ك. الدم الحمراء",
+//       value: "5.0",
+//       unit: "x10^6/uL",
+//       status: "طبيعي",
+//       color: "#2F9E44",
+//       bg: "#F6FFF8",
+//     },
+//   ];
+
+//   return (
+//     <SafeAreaView style={styles.container}>
+//       {/* Header */}
+//       <View style={styles.header}>
+//         <TouchableOpacity onPress={() => navigation.goBack()}>
+//           <Ionicons name="arrow-forward" size={24} color="#333" />
+//         </TouchableOpacity>
+//         <Text style={styles.headerTitle}>المرضى</Text>
+//       </View>
+
+//       <ScrollView
+//         showsVerticalScrollIndicator={false}
+//         contentContainerStyle={styles.scrollContent}
+//       >
+//         {/* Patient Profile */}
+//         <View style={styles.patientProfile}>
+//           <Image
+//             source={{ uri: "https://i.pravatar.cc/150?u=sara" }}
+//             style={styles.avatar}
+//           />
+//           <View style={styles.profileText}>
+//             <Text style={styles.patientName}>سارة أمين</Text>
+//             <Text style={styles.patientSubInfo}>
+//               24 سنة | أنثى | فصيلة الدم : +B
+//             </Text>
+//           </View>
+//         </View>
+
+//         {/* Stable Status Badge */}
+//         <View style={styles.stableAlertBox}>
+//           <Text style={styles.stableAlertText}>الحالة مستقرة</Text>
+//         </View>
+
+//         {/* Health Status Tags */}
+//         <Text style={styles.sectionTitle}>الحالة الصحية</Text>
+//         <View style={styles.tagRow}>
+//           <View style={styles.tag}>
+//             <Text style={styles.tagText}>أنيميا</Text>
+//           </View>
+//           <View style={styles.tag}>
+//             <Text style={styles.tagText}>حمى البحر المتوسط</Text>
+//           </View>
+//         </View>
+
+//         {/* Vitals Grid */}
+//         <Text style={styles.sectionTitle}>المؤشرات الحيوية</Text>
+//         <View style={styles.vitalsGrid}>
+//           {vitals.map((item) => (
+//             <View
+//               key={item.id}
+//               style={[styles.vitalCard, { borderStartColor: item.color }]}
+//             >
+//               <Text style={styles.vitalLabel}>{item.label}</Text>
+//               <View style={styles.vitalValueRow}>
+//                 <Text style={styles.vitalValue}>{item.value}</Text>
+//                 <Text style={styles.vitalUnit}>{item.unit}</Text>
+                
+//               </View>
+//               <View style={[styles.statusBadge, { backgroundColor: item.bg }]}>
+//                 <Text style={[styles.statusText, { color: item.color }]}>
+//                   {item.status}
+//                 </Text>
+//               </View>
+//             </View>
+//           ))}
+//         </View>
+
+//         {/* AI Analysis (Green Content) */}
+//         <Text style={styles.sectionTitle}>تحليل الذكاء الاصطناعي</Text>
+//         <View style={styles.aiContainer}>
+//           <View style={styles.aiHeader}>
+//             <View style={styles.aiIconCircle}>
+//               <Ionicons name="sparkles" size={18} color="#333" />
+//             </View>
+//           </View>
+//           <Text style={styles.aiText}>
+//             تحليل الدم يظهر أن جميع المؤشرات ضمن المستويات الطبيعية، بما في ذلك
+//             الحديد ومخزون الفيريتين... مما يعكس وظائف دمية مستقرة ونظام مناعي
+//             صحي. الحالة مستقرة تماماً.
+//           </Text>
+//         </View>
+//         {/* Medications Section - الجزء اللي عدلناه */}
+//         <View style={styles.sectionHeaderRow}>
+//           <TouchableOpacity
+//             onPress={() =>
+//               navigation.navigate("MedicationsScreen", {
+//                 initialMeds: currentMeds,
+//                 targetScreen: "StableCondition", // نمرر اسم الشاشة عشان نرجع لها
+//               })
+//             }
+//           >
+//             <Text style={styles.editBtn}>تعديل</Text>
+//           </TouchableOpacity>
+//           <Text style={styles.sectionTitle}>الأدوية</Text>
+//         </View>
+
+//         <View style={styles.medicationList}>
+//           {currentMeds.map((med) => (
+//             <View key={med.id} style={styles.medItem}>
+//               <Text style={styles.medTime}>{med.dose}</Text>
+//               <Text style={styles.medName}>{med.name}</Text>
+//             </View>
+//           ))}
+//         </View>
+//         {/* Test Records */}
+//         <Text style={styles.sectionTitle}>سجل التحاليل</Text>
+//         <View style={styles.testList}>
+//           <View style={styles.testItem}>
+//             <Text style={styles.testDate}>10 مارس</Text>
+//             <Text style={styles.testName}>CBC</Text>
+//           </View>
+//         </View>
+//       </ScrollView>
+//     </SafeAreaView>
+//   );
+// };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FDFCF8", paddingTop: 30 },
@@ -349,4 +636,3 @@ const styles = StyleSheet.create({
   testDate: { fontSize: 13, color: "#AAA" },
 });
 
-export default StableCondition;

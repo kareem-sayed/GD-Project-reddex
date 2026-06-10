@@ -1,49 +1,52 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   StyleSheet,
   View,
   Text,
   SafeAreaView,
   TouchableOpacity,
-  Switch,
   Platform,
 } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
+
 export default function HelpScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>المساعدة</Text>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-forward" size={24} color="#641919" />
           </TouchableOpacity>
+          <Text style={styles.headerTitle}>المساعدة</Text>
+          <View style={{ width: 24 }} />
         </View>
       </View>
 
       <View style={styles.content}>
         <View style={styles.helpCard}>
-          <Text style={styles.helpTitle}>تواصل</Text>
+          <Text style={styles.helpTitle}>تواصل معنا</Text>
 
           <View style={styles.optionsRow}>
-            {/*email*/}
+            {/* Email */}
             <TouchableOpacity style={styles.optionBox}>
               <Ionicons name="mail-outline" size={30} color="#333" />
               <Text style={styles.optionText}>البريد الإلكتروني</Text>
             </TouchableOpacity>
 
-            {/*chat*/}
+            {/* Chat */}
             <TouchableOpacity style={styles.optionBox}>
               <Ionicons name="chatbubble-outline" size={30} color="#333" />
-              <Text style={styles.optionText}>المحادثة</Text>
+              <Text style={styles.optionText}>المحادثة الحية</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        <TouchableOpacity style={{ alignSelf: "center", marginTop: 10}}>
+        <TouchableOpacity style={{ alignSelf: "center", marginTop: 20 }}>
           <Text style={styles.linkText}>الأحكام والشروط</Text>
         </TouchableOpacity>
+
+        <Text style={styles.versionText}>نسخة التطبيق 1.0</Text>
       </View>
     </SafeAreaView>
   );

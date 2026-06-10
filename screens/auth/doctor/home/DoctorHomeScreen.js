@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,46 +7,81 @@ import {
   StatusBar,
   Image,
   ScrollView,
+  ActivityIndicator,
+  Alert,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Platform } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-export default function DoctorHomeScreen({ navigation }) {
-  // 1. partient requests - static data for now
-  const [pendingRequests, setPendingRequests] = useState([
-    {
-      id: "1",
-      name: "أحمد خالد",
-      condition: "أنيميا البحر المتوسط",
-      image: require("../../../../assets/images/profile/patient1.png"),
-    },
-    {
-      id: "2",
-      name: "سارة وائل",
-      condition: "حمى البحر المتوسط",
-      image: require("../../../../assets/images/profile/patient1.png"),
-    },
-    {
-      id: "3",
-      name: "متولي عبد الخالق",
-      condition: "لوكيميا",
-      image: require("../../../../assets/images/profile/patient1.png"),
-    },
-    {
-      id: "4",
-      name: "يوسف علي",
-      condition: "لوكيميا",
-      image: require("../../../../assets/images/profile/patient1.png"),
-    },
-  ]);
+// import API functions
+import {
+  getDoctorProfile,
+  getPendingFollowUps,
+  acceptFollowUpRequest,
+} from "../../../../backEnd/api/services/doctorApi";
 
-  // add patient to follow up list
-  const handleAddPatient = (id) => {
-    setPendingRequests((prev) => prev.filter((p) => p.id !== id));
-    // api call to accept the request would go here
-    alert("تم قبول طلب المتابعة بنجاح");
+export default function DoctorHomeScreen({ navigation }) {
+  // 1. partient requests 2. doctor profile info 3. loading states for both
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [doctorInfo, setDoctorInfo] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [loadingRequests, setLoadingRequests] = useState(true);
+
+  // fetch doctor profile and pending requests on component mount
+  useEffect(() => {
+    fetchDoctorProfile();
+    fetchPendingRequests();
+  }, []);
+
+  const fetchDoctorProfile = async () => {
+    try {
+      setLoadingProfile(true);
+      console.log("LOG: Fetching profile from GET /users/me...");
+      const res = await getDoctorProfile();
+      console.log("LOG: Doctor Profile response data:", res.data);
+      setDoctorInfo(res.data.data);
+    } catch (error) {
+      console.log("LOG: Error fetching doctor profile:", error);
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
+  const fetchPendingRequests = async () => {
+    try {
+      setLoadingRequests(true);
+      console.log("LOG: Fetching requests from GET /follow-up/doctor...");
+      const res = await getPendingFollowUps();
+      console.log("LOG: Pending requests response data:", res.data);
+      console.log(
+        "LOG: Pending requests response data:",
+        JSON.stringify(res, null, 2),
+      );
+      setPendingRequests(res.data.data.data || []);
+    } catch (error) {
+      console.log("LOG: Error fetching pending requests:", error);
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
+  // function to handle accepting a follow-up request
+  const handleAddPatient = async (id) => {
+    try {
+      console.log(
+        `LOG: Sending PATCH /follow-up/${id}/respond with status ACCEPTED`,
+      );
+      await acceptFollowUpRequest(id);
+
+      // remove the accepted request from the pending list
+      setPendingRequests((prev) => prev.filter((p) => p.id !== id));
+      Alert.alert("نجاح", "تم قبول طلب المتابعة بنجاح");
+    } catch (error) {
+      console.log("LOG: Error accepting follow up request:", error);
+      Alert.alert("خطأ", "فشل في قبول طلب المتابعة، يرجى المحاولة مرة أخرى.");
+    }
   };
   // stat card component
   const StatCard = ({ count, label, color }) => (
@@ -100,7 +135,15 @@ export default function DoctorHomeScreen({ navigation }) {
       </TouchableOpacity>
 
       <View style={styles.patientInfo}>
-        <Image source={item.image} style={styles.patientAvatar} />
+        {/* check if image is a URL or a local file */}
+        <Image
+          source={
+            typeof item.image === "string"
+              ? { uri: item.image }
+              : require("../../../../assets/images/profile/patient1.png")
+          }
+          style={styles.patientAvatar}
+        />
         <View style={{ marginLeft: 10, alignItems: "flex-start" }}>
           <Text style={styles.patientName}>{item.name}</Text>
           <Text style={styles.patientCondition}>{item.condition}</Text>
@@ -108,29 +151,69 @@ export default function DoctorHomeScreen({ navigation }) {
       </View>
     </View>
   );
-  const Header = () => (
-    <View style={styles.header}>
-      {/* bell icon */}
-      <TouchableOpacity
-        style={styles.bellContainer}
-        onPress={() => navigation.navigate("NotificationsScreen")}
-      >
-        <Ionicons name="notifications-outline" size={22} color="#000" />
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>1</Text>
-        </View>
-      </TouchableOpacity>
+  const Header = () => {
+    // check if doctor has a photo (either from local or URL) before rendering
+    const hasPhoto = doctorInfo && (doctorInfo.photo || doctorInfo.photoUrl);
 
-      {/* doctor info + image */}
-      <View style={styles.headerRight}>
-        <Image
-          source={require("../../../../assets/images/profile/patient1.png")}
-          style={styles.doctorImage}
-        />
-        <Text style={styles.greeting}>أهلاً، د. عادل</Text>
+    return (
+      <View style={styles.header}>
+        {/* bell icon */}
+        <TouchableOpacity
+          style={styles.bellContainer}
+          onPress={() => navigation.navigate("NotificationsScreen")}
+        >
+          <Ionicons name="notifications-outline" size={22} color="#000" />
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>1</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* doctor info + image */}
+        <View style={styles.headerRight}>
+          {loadingProfile ? (
+            <ActivityIndicator
+              size="small"
+              color="#641919"
+              style={{ marginRight: 10 }}
+            />
+          ) : hasPhoto ? (
+            <Image
+              source={{ uri: doctorInfo.photo || doctorInfo.photoUrl }}
+              style={styles.doctorImage}
+            />
+          ) : (
+            /* avatar fallback (gray circle) with the same size and space allocated for the image */
+            <View
+              style={[
+                styles.doctorImage,
+                {
+                  backgroundColor: "#E0E0E0",
+                  justifyContent: "center",
+                  alignItems: "center",
+                },
+              ]}
+            >
+              <MaterialCommunityIcons
+                name="account-circle-outline"
+                size={32}
+                color="#757575"
+              />
+            </View>
+          )}
+          <Text style={styles.greeting}>
+            {loadingProfile
+              ? "جاري التحميل..."
+              : `أهلاً، د. ${doctorInfo?.user?.name || "الطبيب"}`}
+          </Text>
+          {/* <Image
+            source={require("../../../../assets/images/profile/patient1.png")}
+            style={styles.doctorImage}
+          />
+          <Text style={styles.greeting}>أهلاً، د. عادل</Text> */}
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FDFCF8" />
@@ -163,7 +246,13 @@ export default function DoctorHomeScreen({ navigation }) {
 
         {/* patient list */}
         <View style={styles.listContainer}>
-          {pendingRequests.length > 0 ? (
+          {loadingRequests ? (
+            <ActivityIndicator
+              size="large"
+              color="#641919"
+              style={{ marginTop: 20 }}
+            />
+          ) : pendingRequests.length > 0 ? (
             pendingRequests
               .slice(0, 3)
               .map((item) => <PatientItem key={item.id} item={item} />)

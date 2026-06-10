@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   StyleSheet,
   View,
@@ -9,19 +9,26 @@ import {
   ScrollView,
   StatusBar,
   Dimensions,
+  Modal,
+  ActivityIndicator,
+  Alert,
   Platform,
   TouchableWithoutFeedback,
-  Modal,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
+
+// API Integration
+import { getDoctorProfile } from "../../../../backEnd/api/services/doctorApi";
 
 const { width } = Dimensions.get("window");
 
-export default function DoctorProfileScreen({ navigation, route }) {
+export default function DoctorProfileScreen({ navigation }) {
   const [menuVisible, setMenuVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // 1.basic user data
   const [userData, setUserData] = useState({
+    id: "",
     name: "عادل حافظ",
     specialty: "باطنة",
     experience: "10",
@@ -33,18 +40,46 @@ export default function DoctorProfileScreen({ navigation, route }) {
     consultation: "100",
     workingHours: "8:00 مساءاً إلي 9:00 مساءاً",
     workingDays: "أحد - اثنين - أربع",
-    image: "https://i.pravatar.cc/300?img=12",
+    image: null,
   });
 
-  // 2.update data from EditProfileScreen
-  useEffect(() => {
-    if (route.params?.updatedData) {
-      setUserData((prevData) => ({
-        ...prevData,
-        ...route.params.updatedData,
-      }));
+  // جلب البيانات من السيرفر
+  const fetchProfileData = async () => {
+    try {
+      setLoading(true);
+      const response = await getDoctorProfile();
+      const serverData = response?.data?.data;
+      if (serverData) {
+        setUserData({
+          id: serverData.user?.id || serverData.user?._id || "",
+          name: serverData.user?.name || "عادل حافظ",
+          specialty: serverData.specialty || "باطنة",
+          experience: serverData.yearsExperience || "10",
+          email: serverData.user?.email || "email@domain.com",
+          phone: serverData.user?.phone || "01234567899",
+          clinicName: serverData.clinicName || "عيادات الامل",
+          address: serverData.clinicLocation || "شارع الخليفة الظاهر مدينة نصر",
+          price: serverData.price || "200",
+          consultation: serverData.consultation || "100",
+          workingHours: serverData.workingHours || "8:00 مساءاً إلي 9:00 مساءاً",
+          workingDays: serverData.workingDays || "أحد - اثنين - أربع",
+          image: serverData.user?.photourl || null,
+        });
+      }
+    } catch (error) {
+      console.log("LOG: Error fetching doctor profile:", error);
+      Alert.alert("خطأ", "فشل في تحميل بيانات الملف الشخصي الحقيقية.");
+    } finally {
+      setLoading(false);
     }
-  }, [route.params?.updatedData]);
+  };
+
+  // يشتغل تلقائياً أول ما الشاشة تظهر أمامه (تسميع فوري عند العودة)
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfileData();
+    }, [])
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -54,11 +89,7 @@ export default function DoctorProfileScreen({ navigation, route }) {
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <TouchableOpacity onPress={() => setMenuVisible(true)}>
-            <MaterialCommunityIcons
-              name="dots-vertical"
-              size={26}
-              color="black"
-            />
+            <MaterialCommunityIcons name="dots-vertical" size={26} color="black" />
           </TouchableOpacity>
 
           <Text style={styles.headerTitle}>الملف الشخصي</Text>
@@ -68,7 +99,7 @@ export default function DoctorProfileScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
-        {/* Modal */}
+        {/* Dropdown Modal */}
         <Modal
           visible={menuVisible}
           transparent={true}
@@ -82,10 +113,7 @@ export default function DoctorProfileScreen({ navigation, route }) {
                   style={styles.menuItem}
                   onPress={() => {
                     setMenuVisible(false);
-
-                    navigation.navigate("EditProfileScreen", {
-                      userData: userData,
-                    });
+                    navigation.navigate("EditProfileScreen", { userData });
                   }}
                 >
                   <Text style={styles.menuText}>تعديل الملف الشخصي</Text>
@@ -120,83 +148,87 @@ export default function DoctorProfileScreen({ navigation, route }) {
         </Modal>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollPadding}
-      >
-        {/* Doctor Information */}
-        <View style={styles.doctorInfoSection}>
-          <View style={styles.ratingContainer}>
-            <Text style={styles.ratingText}>4.8</Text>
-            <Ionicons name="star" size={19} color="#efcf16" />
-          </View>
-
-          <View style={styles.profileRow}>
-            <View style={styles.textData}>
-              <Text style={styles.drName}>د . {userData.name}</Text>
-              <Text style={styles.drSubText}>{userData.specialty}</Text>
-              <Text style={styles.drExperience}>
-                +{userData.experience} سنين خبرة
-              </Text>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#641919" />
+        </View>
+      ) : (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollPadding}>
+          {/* Doctor Information */}
+          <View style={styles.doctorInfoSection}>
+            <View style={styles.ratingContainer}>
+              <Text style={styles.ratingText}>4.8</Text>
+              <Ionicons name="star" size={19} color="#efcf16" />
             </View>
-            <Image
-              source={{ uri: userData.image }}
-              style={styles.profileImage}
-            />
-          </View>
-        </View>
 
-        {/* Statistics */}
-        <View style={styles.statsRow}>
-          <View style={styles.statBox}>
-            <Text style={styles.statValue}>3</Text>
-            <Text style={styles.statTitle}>مريض حالي</Text>
+            <View style={styles.profileRow}>
+              <View style={styles.textData}>
+                <Text style={styles.drName}>د . {userData.name}</Text>
+                <Text style={styles.drSubText}>{userData.specialty}</Text>
+                <Text style={styles.drExperience}>+{userData.experience} سنين خبرة</Text>
+              </View>
+              {userData.image ? (
+                <Image source={{ uri: userData.image }} style={styles.profileImage} />
+              ) : (
+                <View style={[styles.profileImage, styles.fallbackAvatarContainer]}>
+                  <MaterialCommunityIcons name="account-circle" size={60} color="#949292" />
+                </View>
+              )}
+            </View>
           </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statValue}>124</Text>
-            <Text style={styles.statTitle}>كل المرضي</Text>
-          </View>
-        </View>
 
-        {/* Clinic Information */}
-        <View style={styles.section}>
-          <Text style={styles.sectionHeader}>مكان العمل</Text>
-          <View style={styles.dataRow}>
-            <Text style={styles.label}>الاسم :</Text>
-            <Text style={styles.value}>{userData.clinicName}</Text>
+          {/* Statistics */}
+          <View style={styles.statsRow}>
+            <View style={styles.statBox}>
+              <Text style={styles.statValue}>3</Text>
+              <Text style={styles.statTitle}>مريض حالي</Text>
+            </View>
+            <View style={styles.statBox}>
+              <Text style={styles.statValue}>124</Text>
+              <Text style={styles.statTitle}>كل المرضي</Text>
+            </View>
           </View>
-          <View style={styles.dataRow}>
-            <Text style={styles.label}>عنوان :</Text>
-            <Text style={styles.value}>{userData.address}</Text>
-          </View>
-        </View>
 
-        {/* Working Hours */}
-        <View style={styles.section}>
-          <Text style={styles.sectionHeader}>مواعيد العمل</Text>
-          <View style={styles.dataRow}>
-            <Text style={styles.label}>مواقيت العمل :</Text>
-            <Text style={styles.value}>{userData.workingHours}</Text>
+          {/* Clinic Information */}
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>مكان العمل</Text>
+            <View style={styles.dataRow}>
+              <Text style={styles.label}>الاسم :</Text>
+              <Text style={styles.value}>{userData.clinicName}</Text>
+            </View>
+            <View style={styles.dataRow}>
+              <Text style={styles.label}>عنوان :</Text>
+              <Text style={styles.value}>{userData.address}</Text>
+            </View>
           </View>
-          <View style={styles.dataRow}>
-            <Text style={styles.label}>ايام العمل :</Text>
-            <Text style={styles.value}>{userData.workingDays}</Text>
-          </View>
-        </View>
 
-        {/* Prices */}
-        <View style={styles.section}>
-          <Text style={styles.sectionHeader}>الأسعار</Text>
-          <View style={styles.dataRow}>
-            <Text style={styles.label}>الكشف :</Text>
-            <Text style={styles.value}>{userData.price} جنية</Text>
+          {/* Working Hours */}
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>مواعيد العمل</Text>
+            <View style={styles.dataRow}>
+              <Text style={styles.label}>مواقيت العمل :</Text>
+              <Text style={styles.value}>{userData.workingHours}</Text>
+            </View>
+            <View style={styles.dataRow}>
+              <Text style={styles.label}>ايام العمل :</Text>
+              <Text style={styles.value}>{userData.workingDays}</Text>
+            </View>
           </View>
-          <View style={styles.dataRow}>
-            <Text style={styles.label}>الاستشارة :</Text>
-            <Text style={styles.value}>{userData.consultation} جنية</Text>
+
+          {/* Prices */}
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>الأسعار</Text>
+            <View style={styles.dataRow}>
+              <Text style={styles.label}>الكشف :</Text>
+              <Text style={styles.value}>{userData.price} جنية</Text>
+            </View>
+            <View style={styles.dataRow}>
+              <Text style={styles.label}>الاستشارة :</Text>
+              <Text style={styles.value}>{userData.consultation} جنية</Text>
+            </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }
@@ -315,9 +347,20 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 40,
+    alignContent: "center",
+    alignItems: "center",
+    justifyContent: "center",
+    // marginLeft: 10,
+    marginRight: 10,
+
+  },
+  fallbackAvatarContainer: {
     borderWidth: 1,
+    // width: 100%,
+    // height: 100% ,
     borderColor: "#EEE",
   },
+ 
   statsRow: {
     flexDirection: "row",
     paddingHorizontal: 16,

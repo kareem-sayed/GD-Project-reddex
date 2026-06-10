@@ -1,37 +1,33 @@
 // mainClient.js
 import axios from "axios";
-import { getToken } from "../../storage/tokenStorage";
+import { getToken, removeToken } from "../../storage/tokenStorage";
 
 const mainClient = axios.create({
-    baseURL: "http://63.180.89.122:3000",
+  baseURL: "http://63.180.89.122:3000",
 });
 
 mainClient.interceptors.request.use(async (config) => {
-    const token = await getToken();
+  const token = await getToken();
 
-    if (token) {
+  if (token) {
     config.headers.Authorization = `Bearer ${token}`;
-    }
+  }
 
-    return config;
+  return config;
 });
 
 mainClient.interceptors.response.use(
+  (response) => response,
 
-    (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      console.log("Token expired");
 
-    async (error) => {
-
-        if (error.response?.status === 401) {
-
-        console.log("Token expired");
-
-        await removeToken();
-
-        }
-
-        return Promise.reject(error);
+      await removeToken();
     }
+
+    return Promise.reject(error);
+  },
 );
 
 export default mainClient;

@@ -7,9 +7,9 @@ import {
   ScrollView,
   SafeAreaView,
   StatusBar,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Platform } from "react-native";
 
 export default function NotificationsScreen({ navigation }) {
   // Component to render each notification item
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
   },
   header: {
-    flexDirection: "row", 
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#F5F5F5",
   },
   unreadBackground: {
-    backgroundColor: "#FFF9F0", 
+    backgroundColor: "#FFF9F0",
   },
   timeText: {
     fontSize: 12,

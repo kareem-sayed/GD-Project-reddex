@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -11,22 +11,32 @@ import {
   Alert,
   Modal,
   TouchableWithoutFeedback,
+  ActivityIndicator,
   Platform,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import MapView, { Marker } from "react-native-maps";
 import * as ImagePicker from "expo-image-picker";
-const EditProfileScreen = ({ route, navigation }) => {
+
+// API Integration
+import {
+  getDoctorProfile,
+  updateDoctorProfile,
+  updateOnlyDoctorData,
+} from "../../../../backEnd/api/services/doctorApi";
+
+export default function EditProfileScreen({ route, navigation }) {
   const { userData } = route.params || {};
   const [menuVisible, setMenuVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState(userData?.id || "");
+
   // --- States ---
   const [name, setName] = useState(userData?.name || "عادل حافظ");
   const [email, setEmail] = useState(userData?.email || "email@domain.com");
   const [phone, setPhone] = useState(userData?.phone || "01234567899");
   const [specialty, setSpecialty] = useState(userData?.specialty || "باطنة");
-  const [experience, setExperience] = useState(userData?.experience || "11");
-
-  // clinic info
+  const [experience, setExperience] = useState(userData?.experience || "10");
   const [clinicName, setClinicName] = useState(
     userData?.clinicName || "عيادات الامل",
   );
@@ -34,46 +44,77 @@ const EditProfileScreen = ({ route, navigation }) => {
     userData?.address || "شارع الخليفة الظاهر مدينة نصر",
   );
 
-  // work hours
   const [startTime, setStartTime] = useState(
-    userData?.workingHours?.split(" إلي ")[0] || "8:00 pm",
+    userData?.workingHours?.split(" إلي ")[0] || "8:00 مساءاً",
   );
   const [endTime, setEndTime] = useState(
-    userData?.workingHours?.split(" إلي ")[1] || "9:00 pm",
+    userData?.workingHours?.split(" إلي ")[1] || "9:00 مساءاً",
   );
-  // State for selected days of the week, with default values for "ح", "ن", "ر")
   const [selectedDays, setSelectedDays] = useState(["ح", "ن", "ر"]);
-  // prices
   const [price, setPrice] = useState(userData?.price || "200");
   const [consultation, setConsultation] = useState(
     userData?.consultation || "100",
   );
-  // state for profile image
-  const [image, setImage] = useState(
-    userData?.image || "https://i.pravatar.cc/300?img=12",
-  );
-  const pickImage = async () => {
-    // request permission to access media library
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  const [image, setImage] = useState(userData?.image || null);
 
+  const [region, setRegion] = useState({
+    latitude: 30.0444,
+    longitude: 31.2357,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  });
+
+  // مزامنة الداتا الحية عند فتح الصفحة
+  useEffect(() => {
+    const loadFreshUserData = async () => {
+      try {
+        setLoading(true);
+        const response = await getDoctorProfile();
+        const serverData = response?.data?.data;
+        if (serverData) {
+          setUserId(serverData.user?.id || serverData.user?._id || "");
+          setName(serverData.user?.name || "عادل حافظ");
+          setEmail(serverData.user?.email || "email@domain.com");
+          setPhone(serverData.user?.phone || "01234567899");
+          setSpecialty(serverData.specialty || "باطنة");
+          setExperience(serverData.yearsExperience || "10");
+          setClinicName(serverData.clinicName || "عيادات الامل");
+          setAddress(
+            serverData.clinicLocation || "شارع الخليفة الظاهر مدينة نصر",
+          );
+          setPrice(serverData.price || "200");
+          setConsultation(serverData.consultation || "100");
+          setImage(serverData.user?.photourl || null);
+        }
+      } catch (error) {
+        console.log(
+          "LOG: Error loading fresh profile data inside edit form:",
+          error,
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadFreshUserData();
+  }, []);
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       Alert.alert("عذراً", "نحتاج إذن للوصول لمعرض الصور الخاص بك!");
       return;
     }
-
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 1,
     });
-
     if (!result.canceled) {
-      setImage(result.assets[0].uri); // update state with new image URI
+      setImage(result.assets[0].uri);
     }
   };
 
-  // toggle day selection
   const toggleDay = (day) => {
     if (selectedDays.includes(day)) {
       setSelectedDays(selectedDays.filter((d) => d !== day));
@@ -81,39 +122,159 @@ const EditProfileScreen = ({ route, navigation }) => {
       setSelectedDays([...selectedDays, day]);
     }
   };
-  const handleSave = () => {
-    // map Arabic letters to full day names for display
-    const daysMapping = {
-      س: "سبت",
-      ح: "أحد",
-      ن: "اثنين",
-      ت: "ثلاثاء",
-      ر: "أربعاء",
-      خ: "خميس",
-      ج: "جمعة",
-    };
-    const formattedDays = selectedDays
-      .map((day) => daysMapping[day])
-      .join(" - ");
-    const updatedData = {
-      image,
-      name,
-      email,
-      phone,
-      specialty,
-      experience,
-      clinicName,
-      address,
-      workingHours: `${startTime} إلي ${endTime}`,
-      workingDays: formattedDays,
-      price,
-      consultation,
-    };
-    // navigate back to profile screen with updated data
-    navigation.navigate("DoctorProfileScreen", { updatedData });
-  };
 
-  // reusable input component
+  // // حفظ التعديلات وإرسالها كاملة للسيرفر
+  // const handleSave = async () => {
+  //   try {
+  //     setLoading(true);
+
+  //     const daysMapping = {
+  //       س: "سبت",
+  //       ح: "أحد",
+  //       ن: "اثنين",
+  //       ت: "ثلاثاء",
+  //       ر: "أربعاء",
+  //       خ: "خميس",
+  //       ج: "جمعة",
+  //     };
+  //     const formattedDays = selectedDays
+  //       .map((day) => daysMapping[day])
+  //       .join(" - ");
+
+  //     // تجميع الـ payload بالكامل تبعا للمسميات المتوقعة في السيرفر
+  //     const payload = {
+  //       name: name,
+  //       email: email,
+  //       phone: phone,
+  //       specialty: specialty,
+  //       yearsExperience: experience,
+  //       clinicName: clinicName,
+  //       clinicLocation: address,
+  //       price: price,
+  //       consultation: consultation,
+  //       workingHours: `${startTime} إلي ${endTime}`,
+  //       workingDays: formattedDays,
+  //     };
+
+  //     console.log(`LOG: Updating user profile for ID: ${userId}...`);
+  //     await updateDoctorProfile(userId, payload);
+
+  //     Alert.alert("نجاح", "تم تحديث الملف الشخصي بنجاح على السيرفر.", [
+  //       {
+  //         text: "حسناً",
+  //         onPress: () => navigation.goBack(), // نرجع فوراً والـ useFocusEffect في الشاشة السابقة هيتكفل بالباقي
+  //       },
+  //     ]);
+  //   } catch (error) {
+  //     console.log("LOG: Error updating profile parameters:", error);
+  //     Alert.alert(
+  //       "خطأ",
+  //       "فشل في حفظ التعديلات على السيرفر، يرجى المحاولة مرة أخرى.",
+  //     );
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // حفظ التعديلات وإرسالها كاملة للسيرفر بالمسميات الصحيحة
+  // const handleSave = async () => {
+  //   try {
+  //     setLoading(true);
+
+  //     // 1. تحويل الحروف لأيام كاملة متوافقة مع السيرفر
+  //     const daysMapping = {
+  //       س: "السبت",
+  //       ح: "الأحد",
+  //       ن: "الإثنين",
+  //       ت: "الثلاثاء",
+  //       ر: "الأربعاء",
+  //       خ: "الخميس",
+  //       ج: "الجمعة"
+  //     };
+
+  //     const formattedDaysArray = selectedDays.map((day) => daysMapping[day] || day);
+
+  //     // 2. تجميع الـ payload بالمسميات والأنواع الصحيحة للسيرفر
+  //     const payload = {
+  //       name: name,
+  //       email: email,
+  //       phone: phone,
+  //       specialty: specialty,
+  //       yearsExperience: Number(experience), // تحويل الخبرة إلى رقم
+  //       nameOfClinic: clinicName,            // المسمى الصحيح للسيرفر بدلاً من clinicName
+  //       locationOfClinic: address,           // المسمى الصحيح للسيرفر بدلاً من clinicLocation
+  //       price: price,
+  //       consultation: consultation,
+  //       workingHours: `${startTime} إلي ${endTime}`,
+  //       workdays: formattedDaysArray,        // إرسالها كمصفوفة بدلاً من نص مدموج
+  //     };
+
+  //     console.log(`LOG: Updating user profile for ID: ${userId}...`);
+  //     await updateDoctorProfile(userId, payload);
+
+  //     Alert.alert("نجاح", "تم تحديث الملف الشخصي بنجاح على السيرفر.", [
+  //       {
+  //         text: "حسناً",
+  //         onPress: () => navigation.goBack(),
+  //       },
+  //     ]);
+  //   } catch (error) {
+  //     console.log("LOG: Error updating profile parameters:", error);
+  //     Alert.alert("خطأ", "فشل في حفظ التعديلات على السيرفر، يرجى المحاولة مرة أخرى.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+
+      const daysMapping = {
+        س: "السبت",
+        ح: "الأحد",
+        ن: "الإثنين",
+        ت: "الثلاثاء",
+        ر: "الأربعاء",
+        kh: "الخميس",
+        ج: "الجمعة",
+      };
+      const formattedDaysArray = selectedDays.map(
+        (day) => daysMapping[day] || day,
+      );
+
+      const doctorPayload = {
+        specialty: specialty,
+        yearsExperience: Number(experience),
+        nameOfClinic: clinicName,
+        locationOfClinic: address,
+        price: Number(price),
+        consultation: Number(consultation),
+        workingHours: `${startTime} إلي ${endTime}`,
+        workdays: formattedDaysArray,
+      };
+
+      console.log("LOG: Updating doctor table on /doctors/5 ...");
+
+      // استدعاء الدالة الموجهة للمسار الصريح بعد عمل الـ Import لها فوق
+      await updateOnlyDoctorData(5, doctorPayload);
+
+      Alert.alert("نجاح", "تم تحديث بيانات العيادة والتخصص بنجاح.", [
+        { text: "حسناً", onPress: () => navigation.goBack() },
+      ]);
+    } catch (error) {
+      if (error.response) {
+        console.log(
+          "❌ NEW DOCTOR ROUTE ERROR:",
+          JSON.stringify(error.response.data, null, 2),
+        );
+      } else {
+        console.log("LOG: Error:", error);
+      }
+      Alert.alert("خطأ", "فشل في حفظ التعديلات.");
+    } finally {
+      setLoading(false);
+    }
+  };
   const InputField = ({
     label,
     value,
@@ -145,12 +306,6 @@ const EditProfileScreen = ({ route, navigation }) => {
       </View>
     </View>
   );
-  const [region, setRegion] = useState({
-    latitude: 30.0444,
-    longitude: 31.2357,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
-  });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -159,7 +314,7 @@ const EditProfileScreen = ({ route, navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-forward" size={24} color="#641919" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>الملف الشخصي</Text>
+        <Text style={styles.headerTitle}>تعديل الملف الشخصي</Text>
         <TouchableOpacity onPress={() => setMenuVisible(true)}>
           <MaterialCommunityIcons
             name="dots-vertical"
@@ -168,7 +323,8 @@ const EditProfileScreen = ({ route, navigation }) => {
           />
         </TouchableOpacity>
       </View>
-      {/* Modal */}
+
+      {/* Modal Dropdown */}
       <Modal
         visible={menuVisible}
         transparent={true}
@@ -180,19 +336,11 @@ const EditProfileScreen = ({ route, navigation }) => {
             <View style={styles.dropdownMenu}>
               <TouchableOpacity
                 style={styles.menuItem}
-                onPress={() => {
-                  setMenuVisible(false);
-
-                  navigation.navigate("EditProfileScreen", {
-                    userData: userData,
-                  });
-                }}
+                onPress={() => setMenuVisible(false)}
               >
                 <Text style={styles.menuText}>تعديل الملف الشخصي</Text>
               </TouchableOpacity>
-
               <View style={styles.menuDivider} />
-
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => {
@@ -202,9 +350,7 @@ const EditProfileScreen = ({ route, navigation }) => {
               >
                 <Text style={styles.menuText}>الإعدادات</Text>
               </TouchableOpacity>
-
               <View style={styles.menuDivider} />
-
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => {
@@ -219,167 +365,188 @@ const EditProfileScreen = ({ route, navigation }) => {
         </TouchableWithoutFeedback>
       </Modal>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Personal Image Section */}
-        <View style={styles.imageSection}>
-          <View style={styles.imageWrapper}>
-            <Image source={{ uri: image }} style={styles.profileImage} />
-            {/* for icon click */}
-            <TouchableOpacity style={styles.editIconBadge} onPress={pickImage}>
-              <MaterialCommunityIcons
-                name="pencil-outline"
-                size={16}
-                color="#444"
-              />
-            </TouchableOpacity>
-          </View>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#641919" />
         </View>
-        {/* 1.personal info */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>المعلومات الشخصية</Text>
-          <View style={styles.card}>
-            <InputField label="الإسم" value={name} onChangeText={setName} />
-            <InputField
-              label="البريد الإلكتروني"
-              value={email}
-              onChangeText={setEmail}
-            />
-            <InputField
-              label="رقم التليفون"
-              value={phone}
-              onChangeText={setPhone}
-            />
-            <InputField
-              label="كلمة السر"
-              value="********"
-              icon="eye-off-outline"
-            />
-          </View>
-        </View>
-
-        {/* 2.working info */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>المعلومات المهنية</Text>
-          <View style={styles.card}>
-            <InputField
-              label="التخصص"
-              value={specialty}
-              onChangeText={setSpecialty}
-            />
-            <InputField
-              label="عدد سنين الخبرة"
-              value={experience}
-              onChangeText={setExperience}
-            />
-          </View>
-        </View>
-
-        {/* 3. clinic info */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>مكان العمل</Text>
-          <View style={styles.card}>
-            <InputField
-              label="اسم العيادة"
-              value={clinicName}
-              onChangeText={setClinicName}
-            />
-            <InputField
-              label="العنوان"
-              value={address}
-              onChangeText={setAddress}
-              isLocation={true}
-            />
-            {/* real map location */}
-            <View style={styles.mapContainer}>
-              <MapView
-                style={styles.map}
-                region={region}
-                onRegionChangeComplete={(newRegion) => setRegion(newRegion)}
-              >
-                <Marker
-                  coordinate={{
-                    latitude: region.latitude,
-                    longitude: region.longitude,
-                  }}
-                  title="موقع العيادة"
-                />
-              </MapView>
-            </View>
-          </View>
-        </View>
-        {/* 4. Work Hours (Dynamic Days) */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>مواعيد العمل</Text>
-          <View style={styles.card}>
-            <Text style={styles.label}>الأيام</Text>
-            <View style={styles.daysRow}>
-              {["س", "ح", "ن", "ت", "ر", "خ", "ج"].map((day, index) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => toggleDay(day)}
-                  style={[
-                    styles.dayCircle,
-                    selectedDays.includes(day) && styles.selectedDay,
-                  ]}
+      ) : (
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {/* Personal Image */}
+          <View style={styles.imageSection}>
+            <View style={styles.imageWrapper}>
+              {image ? (
+                <Image source={{ uri: image }} style={styles.profileImage} />
+              ) : (
+                <View
+                  style={[styles.profileImage, styles.fallbackAvatarContainer]}
                 >
-                  <Text style={styles.dayText}>{day}</Text>
-                </TouchableOpacity>
-              ))}
+                  <MaterialCommunityIcons
+                    name="account-circle"
+                    size={80}
+                    color="#949292"
+                  />
+                </View>
+              )}
+              <TouchableOpacity
+                style={styles.editIconBadge}
+                onPress={pickImage}
+              >
+                <MaterialCommunityIcons
+                  name="pencil-outline"
+                  size={16}
+                  color="#444"
+                />
+              </TouchableOpacity>
             </View>
+          </View>
 
-            <Text style={[styles.label, { marginTop: 15 }]}>الساعات</Text>
-            <View style={styles.timeRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.subLabel}>إلى</Text>
-                <TextInput
-                  style={styles.timeInput}
-                  value={endTime}
-                  onChangeText={setEndTime}
-                />
-              </View>
-              <View style={{ width: 20 }} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.subLabel}>من</Text>
-                <TextInput
-                  style={styles.timeInput}
-                  value={startTime}
-                  onChangeText={setStartTime}
-                />
+          {/* Personal Info */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>المعلومات الشخصية</Text>
+            <View style={styles.card}>
+              <InputField label="الإسم" value={name} onChangeText={setName} />
+              <InputField
+                label="البريد الإلكتروني"
+                value={email}
+                onChangeText={setEmail}
+              />
+              <InputField
+                label="رقم التليفون"
+                value={phone}
+                onChangeText={setPhone}
+              />
+              <InputField
+                label="كلمة السر"
+                value="********"
+                icon="eye-off-outline"
+              />
+            </View>
+          </View>
+
+          {/* Professional Info */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>المعلومات المهنية</Text>
+            <View style={styles.card}>
+              <InputField
+                label="التخصص"
+                value={specialty}
+                onChangeText={setSpecialty}
+              />
+              <InputField
+                label="عدد سنين الخبرة"
+                value={experience}
+                onChangeText={setExperience}
+              />
+            </View>
+          </View>
+
+          {/* Clinic Info */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>مكان العمل</Text>
+            <View style={styles.card}>
+              <InputField
+                label="اسم العيادة"
+                value={clinicName}
+                onChangeText={setClinicName}
+              />
+              <InputField
+                label="العنوان"
+                value={address}
+                onChangeText={setAddress}
+                isLocation={true}
+              />
+              <View style={styles.mapContainer}>
+                <MapView
+                  style={styles.map}
+                  region={region}
+                  onRegionChangeComplete={(newRegion) => setRegion(newRegion)}
+                >
+                  <Marker
+                    coordinate={{
+                      latitude: region.latitude,
+                      longitude: region.longitude,
+                    }}
+                    title="موقع العيادة"
+                  />
+                </MapView>
               </View>
             </View>
           </View>
-        </View>
 
-        {/* 5. prices */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>الأسعار</Text>
-          <View style={styles.card}>
-            <InputField
-              label="الكشف"
-              value={price}
-              onChangeText={setPrice}
-              placeholder="200 جنية"
-            />
-            <InputField
-              label="الإستشارة"
-              value={consultation}
-              onChangeText={setConsultation}
-              placeholder="100 جنية"
-            />
+          {/* Work Hours */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>مواعيد العمل</Text>
+            <View style={styles.card}>
+              <Text style={styles.labelDays}>الأيام</Text>
+              <View style={styles.daysRow}>
+                {["س", "ح", "ن", "ت", "ر", "خ", "ج"].map((day, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => toggleDay(day)}
+                    style={[
+                      styles.dayCircle,
+                      selectedDays.includes(day) && styles.selectedDay,
+                    ]}
+                  >
+                    <Text style={styles.dayText}>{day}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={[styles.labelDays, { marginTop: 15 }]}>الساعات</Text>
+              <View style={styles.timeRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.subLabel}>إلى</Text>
+                  <TextInput
+                    style={styles.timeInput}
+                    value={endTime}
+                    onChangeText={setEndTime}
+                  />
+                </View>
+                <View style={{ width: 20 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.subLabel}>من</Text>
+                  <TextInput
+                    style={styles.timeInput}
+                    value={startTime}
+                    onChangeText={setStartTime}
+                  />
+                </View>
+              </View>
+            </View>
           </View>
-        </View>
 
-        {/* save button */}
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>حفظ</Text>
-        </TouchableOpacity>
-      </ScrollView>
+          {/* Prices */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>الأسعار</Text>
+            <View style={styles.card}>
+              <InputField
+                label="الكشف"
+                value={price}
+                onChangeText={setPrice}
+                placeholder="200 جنية"
+              />
+              <InputField
+                label="الإستشارة"
+                value={consultation}
+                onChangeText={setConsultation}
+                placeholder="100 جنية"
+              />
+            </View>
+          </View>
+
+          {/* Save Button */}
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            <Text style={styles.saveButtonText}>حفظ</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FDFCF8", paddingTop: 30 },
@@ -439,8 +606,18 @@ const styles = StyleSheet.create({
   profileImage: {
     width: 80,
     height: 80,
-    borderRadius: 50,
+    borderRadius: 40,
     backgroundColor: "#eee",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  fallbackAvatarContainer: {
+    borderWidth: 1,
+    // width: 100%,
+    // height: 100% ,
+    borderColor: "#EEE",
+    justifyContent: "center",
+    alignItems: "center",
   },
   editIconBadge: {
     position: "absolute",
@@ -557,4 +734,4 @@ const styles = StyleSheet.create({
   saveButtonText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
 });
 
-export default EditProfileScreen;
+// export default EditProfileScreen;
