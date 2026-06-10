@@ -3,7 +3,8 @@ import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 
 const PRIMARY = '#8B1A1A';
 
-const CenterCard = memo(({ center, onSavePress }) => {
+// 👈 استقبلنا onPress هنا
+const CenterCard = memo(({ center, onSavePress, onPress }) => {
   const [saved, setSaved] = useState(center.isSaved || false);
 
   const handleSave = () => {
@@ -12,17 +13,19 @@ const CenterCard = memo(({ center, onSavePress }) => {
   };
 
   return (
-    <View style={styles.card}>
+    // 👈 غيرنا الـ View لـ TouchableOpacity عشان الكارت كله ينفع يتداس عليه
+    <TouchableOpacity 
+      style={styles.card} 
+      onPress={onPress} 
+      activeOpacity={0.9}
+    >
       <Image
-        source={{ uri: center.logo }}
+        source={center.image} 
         style={styles.logo}
         resizeMode="cover"
       />
       <Text style={styles.name} numberOfLines={1}>{center.name}</Text>
-      <View style={styles.ratingRow}>
-        <Text style={styles.ratingText}>{center.rating}</Text>
-        <Text style={styles.star}>⭐</Text>
-      </View>
+
       <TouchableOpacity
         style={[styles.saveBtn, saved && styles.saveBtnActive]}
         onPress={handleSave}
@@ -32,7 +35,7 @@ const CenterCard = memo(({ center, onSavePress }) => {
           {saved ? '✓ محفوظ' : 'حفظ'}
         </Text>
       </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   );
 });
 
@@ -62,21 +65,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1a1a2e',
     textAlign: 'center',
-    marginBottom: 4,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    marginBottom: 2,
-  },
-  ratingText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#555',
-  },
-  star: {
-    fontSize: 11,
+    marginBottom: 8, 
   },
   saveBtn: {
     marginTop: 8,

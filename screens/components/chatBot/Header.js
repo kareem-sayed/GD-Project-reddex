@@ -5,14 +5,12 @@ export default function Header({ navigation }) {
   return (
     <View style={styles.container}>
       
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={styles.menuButton}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >
-        <View style={styles.menuLine} />
-        <View style={[styles.menuLine, styles.menuLineShort]} />
-        <View style={styles.menuLine} />
-      </TouchableOpacity>
+        
+      </TouchableOpacity> */}
       <Text style={styles.title}>تشخيص الأعراض</Text>
 
       <TouchableOpacity

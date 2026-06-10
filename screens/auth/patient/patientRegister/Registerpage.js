@@ -104,7 +104,7 @@ export default function Registerpage({ navigation }) {
           }
           secureTextEntry
         />
-        <TouchableOpacity onPress={() => navigation.navigate("ResetPassword")}>
+        <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
           <Text style={styles.helperText}> هل نسيت كلمة المرور؟ </Text>
         </TouchableOpacity>
 

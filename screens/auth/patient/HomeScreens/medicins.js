@@ -5,7 +5,7 @@ import React from 'react'
 import { useContext } from 'react';
 import { PatientContext } from '../../../../backEnd/context/PatientContext';
 
-export default function medicins({ navigation }) { 
+export default function Medicins({ navigation }) { 
     const { medications } = useContext(PatientContext);
 
     return (

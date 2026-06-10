@@ -1,14 +1,40 @@
 import { StyleSheet, Text, View, StatusBar, Image, TouchableOpacity, ScrollView } from 'react-native'
-import React from 'react'
+import React, { useContext } from 'react'
 import ProfileHeader from '../../../components/ProfileHeader'
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useContext } from 'react';
 import { PatientContext } from '../../../../backEnd/context/PatientContext';
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
-    const { profile ,medications} = useContext(PatientContext); 
+  // 1. استدعاء profile, medications, و results من الكونتكست
+  const { profile, medications, results } = useContext(PatientContext); 
+
+  // ==================== معالجة البيانات ====================
+  
+  // استخراج آخر تحليل (للحالة الصحية)
+  const latestResult = results && results.length > 0 ? results[0] : null;
+  const severityLevel = latestResult?.result?.severity_level;
+  
+  let statusColor = "#ccc"; 
+  let statusText = "لا توجد بيانات";
+
+  if (severityLevel === "Severe") {
+    statusColor = "#e91e10"; // أحمر
+    statusText = "غير مستقر (خطير)";
+  } else if (severityLevel === "Moderate") {
+    statusColor = "#f59e0b"; // برتقالي
+    statusText = "متوسط";
+  } else if (severityLevel) {
+    statusColor = "#22c417"; // أخضر
+    statusText = "مستقر";
+  }
+
+  // استخراج قائمة الأمراض الفريدة من جميع التحاليل
+  const extractedDiseases = results ? [...new Set(results.map(r => r.result?.disease_type).filter(Boolean))] : [];
+
+  // أخذ آخر 3 تحاليل فقط لعرضها
+  const recentResults = results ? results.slice(0, 3) : [];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -25,45 +51,40 @@ export default function ProfileScreen() {
           <View style={styles.userInfoText}>
             <Text style={styles.userNameText}>{profile?.user?.name || "جاري التحميل..."}</Text>
             <Text style={styles.userSubDetails}>
-              {profile?.user?.gender === 'male' ? 'ذكر' : profile?.user?.gender === 'female' ? 'أنثى' : 'غير محدد'} | {profile?.user?.age || 'غير محدد'} سنة
+              | {profile?.user?.age || 'غير محدد'} سنة
             </Text>
             <Text style={styles.userSubDetails}>فصيلة الدم: {profile?.bloodType || "غير محددة"}</Text>
           </View>
         </View>
 
-        {/* حالة المريض */}
+        {/* حالتي الصحية (معتمدة على التحليل) */}
         <View style={styles.textContainer}>
-                  <Text style={{ fontSize: 18, color: "#111111", fontWeight: "bold" }}>
-                    حالتي الصحية
-                  </Text>
+          <Text style={{ fontSize: 18, color: "#111111", fontWeight: "bold" }}>
+            حالتي الصحية
+          </Text>
         </View>
         <View style={styles.card}>
           <View style={{ display: "flex", flexDirection: "row", width: "100%", gap: 8, alignItems: "center" }}>
-            <View style={[styles.statusIndicator, { backgroundColor: profile?.healthStatus === 'مستقر' ? '#22c417' : '#e91e10' }]}></View>
-            <Text style={styles.medicineName}>{profile?.healthStatus === "مريض" ? "غير مستقر" : (profile?.healthStatus || "لا يوجد بيانات")} </Text>
+            <View style={[styles.statusIndicator, { backgroundColor: statusColor }]}></View>
+            <Text style={styles.medicineName}>{statusText}</Text>
           </View>
         </View>
         
-        {/* حالتي الصحية */}
+        {/* الأمراض المسجلة (المستخرجة من التحاليل) */}
         <View style={styles.textContainer}>
           <Text style={{ fontSize: 17, color: "#111111", fontWeight: "bold" }}>
             الامراض المسجلة 
           </Text> 
-          {/* <TouchableOpacity onPress={() => navigation.navigate("Search")}>
-            <Text style={{ fontSize: 15, color: "#784847", fontWeight: '400', textDecorationLine: "underline", textDecorationColor: "#784847" }}>
-              تعديل  
-            </Text>
-          </TouchableOpacity> */}
         </View>
 
         <View style={styles.card}>    
           <View style={styles.textContainerVertical}>
-            {profile?.diseases && profile.diseases.length > 0 ? (
-              profile.diseases.map((disease, idx) => (
-                <Text key={idx} style={styles.subText}>• {disease.trim()}</Text>
+            {extractedDiseases && extractedDiseases.length > 0 ? (
+              extractedDiseases.map((disease, idx) => (
+                <Text key={idx} style={styles.subText}>• {disease}</Text>
               ))
             ) : (
-              <Text style={styles.subText}>لا توجد أمراض مسجلة</Text>
+              <Text style={styles.subText}>لا توجد أمراض مسجلة من التحاليل</Text>
             )}
           </View>
         </View>
@@ -77,7 +98,7 @@ export default function ProfileScreen() {
 
         <View style={styles.card}> 
           <View style={{ display: "flex", flexDirection: "column", width: "100%" }}> 
-            {medications.allMedications && medications.allMedications.length > 0 ? (
+            {medications?.allMedications && medications.allMedications.length > 0 ? (
               medications.allMedications.map((med, idx) => (
                 <View key={idx} style={styles.textContainer2}>      
                   <Text style={styles.medicineName}>{med.trim()}</Text>    
@@ -90,34 +111,60 @@ export default function ProfileScreen() {
           </View>    
         </View>
 
-        {/* آخر تحاليلك */}
+        {/* آخر تحاليلك (أول 3 تحاليل) */}
         <View style={styles.textContainer}>
           <Text style={{ fontSize: 17, color: "#111111", fontWeight: "bold" }}>
             اخر تحاليلك
           </Text> 
         </View>
         
-        <View style={styles.card}>    
-          <View style={{ display: "flex", flexDirection: "column", width: "100%", gap: 6 }}>
-            {/* ✅ تصليح دمج الـ Styles بوضعهم في مصفوفة [ ] */}
-            <View style={{ display: "flex", flexDirection: "row", justifyContent: 'space-between' }}>
-              <Text style={styles.medicineName}>مستوى الهيموغلوبين</Text>
-              <Text style={[styles.subText, { color: "#b9c422" }]}>منخفض نسبيا</Text>
+        {recentResults.length > 0 ? (
+          recentResults.map((resItem, idx) => (
+            <View key={idx} style={styles.card}>
+              <View style={{ display: "flex", flexDirection: "column", width: "100%", gap: 6 }}>
+                
+                <View style={{ display: "flex", flexDirection: "row", justifyContent: 'space-between' }}>
+                  <Text style={styles.medicineName}>{resItem.result?.disease_type || "لم يتم التحديد"}</Text>
+                  <Text 
+                    style={[
+                      styles.subText, 
+                      { 
+                        color: resItem.result?.severity_level === "Severe" ? "#e91e10" : 
+                               resItem.result?.severity_level === "Moderate" ? "#f59e0b" : "#22c417",
+                        fontWeight: "bold"
+                      }
+                    ]}
+                  >
+                    {resItem.result?.severity_level === "Severe" ? "خطير" : 
+                     resItem.result?.severity_level === "Moderate" ? "متوسط" : "مستقر"}
+                  </Text>
+                </View>
+
+                <View style={{ display: "flex", flexDirection: "row", justifyContent: 'space-between' }}>
+                  <Text style={styles.medicineName}>تاريخ التحليل:</Text>
+                  <Text style={styles.time}>
+                     {new Date(resItem.createdAt).toLocaleDateString('ar-EG', {
+                        year: 'numeric', month: 'short', day: 'numeric'
+                     })}
+                  </Text>
+                </View>
+
+                <View style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
+                  <Text style={styles.medicineName}>ملخص التقرير:</Text>
+                  <Text style={[styles.subText, { lineHeight: 22, textAlign: 'left' }]} numberOfLines={3}>
+                    {resItem.result?.doctor_summary || "لا يوجد ملخص متاح لهذا التحليل."}
+                  </Text>
+                </View>
+
+              </View>
             </View>
- 
-            <View style={{ display: "flex", flexDirection: "row", justifyContent: 'space-between' }}>
-              <Text style={styles.medicineName}>مستوى التغيير</Text>
-              <Text style={[styles.subText, { color: "#22c417" }]}>مستقر</Text>
-            </View>
- 
-            <View style={{ display: "flex", flexDirection: "row", justifyContent: 'space-between' }}>
-              <Text style={styles.time}>الوقت:</Text>
-              <Text style={styles.time}>3 ايام </Text>
-            </View>
+          ))
+        ) : (
+          <View style={styles.card}>
+             <Text style={styles.subText}>لا توجد تحاليل مسجلة حالياً...</Text>
           </View>
-        </View>
+        )}
         
-        {/* إضافة مسافة في الأسفل مريحة للـ Scroll */}
         <View style={{ height: 30 }} />
       </ScrollView>
     </SafeAreaView>

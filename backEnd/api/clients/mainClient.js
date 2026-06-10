@@ -1,6 +1,6 @@
 // mainClient.js
 import axios from "axios";
-import { getToken } from "../../storage/tokenStorage";
+import { getToken, removeToken } from "../../storage/tokenStorage";
 
 const mainClient = axios.create({
     baseURL: "http://63.180.89.122:3000",

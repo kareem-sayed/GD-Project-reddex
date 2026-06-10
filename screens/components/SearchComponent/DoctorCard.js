@@ -1,59 +1,96 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 
 const PRIMARY = '#8B1A1A';
 
-const DoctorCard = memo(({ doctor, variant = 'horizontal', onFollowPress }) => {
-  const [followed, setFollowed] = useState(doctor.isFollowed || false);
+const DoctorCard = memo(({ doctor, variant = 'horizontal', onFollowPress, onPress }) => {
+  // 👈 غيرنا الـ State عشان تاخد الـ Status كـ String بدل Boolean
+  const [status, setStatus] = useState(doctor.followUpStatus || 'NOT_FOLLOWED');
+
+  // 👈 لو الباك إند حدث الداتا من بره، الكارت يحس بيها أوتوماتيك
+  useEffect(() => {
+    setStatus(doctor.followUpStatus || 'NOT_FOLLOWED');
+  }, [doctor.followUpStatus]);
 
   const handleFollow = () => {
-    setFollowed((prev) => !prev);
-    if (onFollowPress) onFollowPress(doctor.id, !followed);
+    // 👈 بنخلي الحالة "انتظار" بشكل مبدئي (Optimistic Update) لحد ما الريكويست يخلص
+    setStatus('PENDING'); 
+    
+    // 👈 بنبعت للـ Parent إن اليوزر داس، وبنبعتله الـ id
+    if (onFollowPress) onFollowPress(doctor.id);
+  };
+
+  const getImageSource = (img) => {
+    if (!img) return { uri: 'https://randomuser.me/api/portraits/men/32.jpg' };
+    if (typeof img === 'string') return { uri: img }; 
+    return img; 
+  };
+
+  // 👈 فانكشن بتحدد النص بتاع الزرار بناءً على الحالة
+  const getButtonText = () => {
+    switch (status) {
+      case 'PENDING':
+        return '⏳ قيد الانتظار';
+      case 'FOLLOWED': // أو 'ACCEPTED' حسب ما الباك إند بيسميها
+        return '✔️ تم المتابعة';
+      default:
+        return 'متابعة';
+    }
+  };
+
+  // 👈 فانكشن بتحدد ستايل الزرار بناءً على الحالة
+  const getButtonStyle = () => {
+    switch (status) {
+      case 'PENDING':
+        return [styles.followBtn, styles.followBtnPending];
+      case 'FOLLOWED':
+        return [styles.followBtn, styles.followBtnActive];
+      default:
+        return styles.followBtn;
+    }
   };
 
   if (variant === 'horizontal') {
     return (
-      <View style={styles.hCard}>
+      <TouchableOpacity style={styles.hCard} onPress={onPress} activeOpacity={0.9}>
         <Image
-          source={{ uri: doctor.image }}
+          source={getImageSource(doctor.image)} 
           style={styles.hImage}
           resizeMode="cover"
         />
         <Text style={styles.hName} numberOfLines={1}>{doctor.name}</Text>
         <Text style={styles.hSpecialty} numberOfLines={1}>{doctor.specialty}</Text>
-        <View style={styles.ratingRow}>
-          <Text style={styles.ratingText}>{doctor.rating}</Text>
-          <Text style={styles.star}>⭐</Text>
-        </View>
-      </View>
+      </TouchableOpacity>
     );
   }
 
   return (
-    <View style={styles.gCard}>
+    <TouchableOpacity style={styles.gCard} onPress={onPress} activeOpacity={0.9}>
       <Image
-        source={{ uri: doctor.image }}
+        source={getImageSource(doctor.image)} 
         style={styles.gImage}
         resizeMode="cover"
       />
       <Text style={styles.gName} numberOfLines={1}>{doctor.name}</Text>
       <Text style={styles.gSpecialty} numberOfLines={1}>{doctor.specialty}</Text>
-      <View style={styles.ratingRow}>
-        <Text style={styles.ratingText}>{doctor.rating}</Text>
-        <Text style={styles.star}>⭐</Text>
-      </View>
+      
       <TouchableOpacity
-        style={[styles.followBtn, followed && styles.followBtnActive]}
+        style={getButtonStyle()} // 👈 الستايل بيتحدد ديناميكياً
         onPress={handleFollow}
         activeOpacity={0.8}
+        // 👈 بنقفل الزرار لو هو قيد الانتظار أو متبوع بالفعل
+        disabled={status === 'PENDING' || status === 'FOLLOWED'} 
       >
-        <Text style={[styles.followText, followed && styles.followTextActive]}>
-          {followed ? '✓ يتم المتابعة' : 'متابعة'}
+        <Text style={[styles.followText, status !== 'NOT_FOLLOWED' && styles.followTextActive]}>
+          {getButtonText()} {/* 👈 النص بيتحدد ديناميكياً */}
         </Text>
       </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   );
 });
+
+
+
 
 const styles = StyleSheet.create({
   // Horizontal card
