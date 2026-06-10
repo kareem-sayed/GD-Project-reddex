@@ -13,7 +13,8 @@ export default function MessageBubble({ message }) {
           style={[styles.text, isUser ? styles.userText : styles.botText]}
           numberOfLines={0}
         >
-          {displayText}
+          {/* {displayText} */}
+          {message.text}
         </Text>
       </View>
     </View>

@@ -36,11 +36,11 @@ import ResetPassword from "./screens/auth/doctor/doctorRegister/ResetPassword";
 
 import TabsNavigation from "./navigation/TabsNavigation";
 
-import DoctorDetailsScreen from "./screens/auth/patient/SearchScreens/DoctorDetailsScreen"; 
+import DoctorDetailsScreen from "./screens/auth/patient/SearchScreens/DoctorDetailsScreen";
 import LabsDetailsScreen from "./screens/auth/patient/SearchScreens/LabsDetailsScreen";
 
-import Medicins from "./screens/auth/patient/HomeScreens/Medicins";
-import ChatScreen from "./screens/auth/patient/ChatScreen/ChatScreen";
+import Medicins from "./screens/auth/patient/HomeScreens/medicins";
+import ChatScreen from "./screens/auth/patient/chatScreen/ChatScreen";
 
 import UploadFileScreen from "./screens/auth/patient/InsertAnalysis/UploadFileScreen";
 import ManualInputScreen from "./screens/auth/patient/InsertAnalysis/ManualInputScreen";
@@ -136,10 +136,7 @@ function PatientNavigator() {
   return (
     <PatientStack.Navigator screenOptions={{ headerShown: false }}>
       {/* Main Tabs */}
-      <PatientStack.Screen
-        name="MainTabs"
-        component={TabsNavigation}
-      />
+      <PatientStack.Screen name="MainTabs" component={TabsNavigation} />
 
       <PatientStack.Screen
         name="DoctorDetailsScreen"
@@ -151,19 +148,13 @@ function PatientNavigator() {
       />
 
       {/* Patient Screens */}
-      <PatientStack.Screen
-        name="ChatScreen"
-        component={ChatScreen}
-      />
+      <PatientStack.Screen name="ChatScreen" component={ChatScreen} />
       <PatientStack.Screen
         name="AnalysisResultScreen"
         component={AnalysisResultScreen}
-      /> 
-
-      <PatientStack.Screen
-        name="Medicins"
-        component={Medicins}
       />
+
+      <PatientStack.Screen name="Medicins" component={Medicins} />
 
       <PatientStack.Screen
         name="UploadFileScreen"
@@ -276,7 +267,7 @@ function RootNavigator() {
     <NavigationContainer>
       {!isLoggedIn ? (
         <AuthNavigator />
-      ) : userRole==="doctor" ? (
+      ) : userRole === "doctor" ? (
         <DoctorNavigator />
       ) : (
         <PatientNavigator />
