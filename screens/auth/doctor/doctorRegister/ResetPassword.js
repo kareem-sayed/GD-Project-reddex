@@ -7,14 +7,64 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import InputField from "../../../components/InputField";
-import CustomButton from "../../../components/CustomButton";
+import { resetPassword } from "../../../../backEnd/api/services/authApi";
 
-export default function ResetPassword({ navigation }) {
-  const [password, setPassword] = useState("");
+export default function ResetPassword({ navigation, route }) {
+  const { email, otp } = route.params;
+  const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleResetPassword = async () => {
+  // Validate newPassword and confirmPassword
+  if (!newPassword.trim() || !confirmPassword.trim()) {
+    Alert.alert("خطأ", "الرجاء ملء جميع الحقول");
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    Alert.alert("خطأ", "كلمات المرور غير متطابقة");
+    return;
+  }
+
+  if (newPassword.length < 8) {
+    Alert.alert("خطأ", "كلمة المرور يجب أن تكون أكثر من 8 أحرف");
+    return;
+  }
+
+  // Sanitize email and otp with aggressive cleaning
+  const cleanEmail = String(email).trim().toLowerCase();
+  const cleanOtp = String(otp)
+    .trim()
+    .replace(/\s+/g, "")
+    .replace(/[^\d]/g, "");
+
+  // Validate OTP is numeric and correct length
+  if (!/^\d{6}$/.test(cleanOtp)) {
+    Alert.alert("خطأ", `الكود يجب أن يكون 6 أرقام فقط (الحالي: ${cleanOtp.length} أحرف)`);
+    return;
+  }
+
+  setLoading(true);
+  try {
+    await resetPassword(cleanEmail, cleanOtp, newPassword);
+    Alert.alert("نجح", "تم تغيير كلمة المرور بنجاح");
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "RoleSelectScreen" }],
+    });
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message || "فشل تغيير كلمة المرور";
+    Alert.alert("خطأ", Array.isArray(errorMessage) ? errorMessage.join("\n") : errorMessage);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <SafeAreaView style={styles.container}>
@@ -35,8 +85,8 @@ export default function ResetPassword({ navigation }) {
               label="كلمة السر الجديدة"
               placeholder="كلمة السر"
               secureTextEntry
-              value={password}
-              onChangeText={setPassword}
+              value={newPassword}
+              onChangeText={setNewPassword}
             />
             <Text style={styles.hintText}>لازم يكون اكتر من 8 حروف</Text>
 
@@ -50,12 +100,16 @@ export default function ResetPassword({ navigation }) {
             <Text style={styles.hintText}>لازم تكون نفس كلمة السر</Text>
 
             <View style={styles.buttonWrapper}>
-              {/* main button */}
               <TouchableOpacity
-                style={styles.mainButton}
-                onPress={() => navigation.navigate("DoctorLogin")}
+                style={[styles.mainButton, loading && styles.buttonDisabled]}
+                onPress={handleResetPassword}
+                disabled={loading}
               >
-                <Text style={styles.buttonText}>تعيين كلمة السر</Text>
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.buttonText}>تعيين كلمة السر</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -71,26 +125,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 40,
   },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 8,
+    paddingBottom: 40,
+  },
+  adjustContent: {
+    marginBottom: 20,
+  },
   headerTitle: {
     fontSize: 22,
     fontWeight: "800",
     textAlign: "left",
     marginBottom: 30,
     color: "#1A1A1A",
-  },
-  headerTitleCenter: {
-    fontSize: 20,
-    fontWeight: "800",
-    textAlign: "center",
-    marginBottom: 15,
-    textAlign: "left",
-  },
-  subTitle: {
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-    lineHeight: 22,
-    marginBottom: 30,
   },
   inputsContainer: {
     gap: 15,
@@ -105,18 +153,16 @@ const styles = StyleSheet.create({
   buttonWrapper: {
     marginTop: 40,
   },
-  contentCenter: {
-    flex: 1,
-    justifyContent: "center",
-  },
   mainButton: {
     backgroundColor: "#7D0A0A",
     height: 55,
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: "auto",
     marginBottom: 10,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: "#FFFFFF",

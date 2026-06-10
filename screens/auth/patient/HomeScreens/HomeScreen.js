@@ -1,50 +1,76 @@
-import React from "react";
-import { useEffect, useState, useContext } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Image, ScrollView } from "react-native";
-
-import { getMyPrescriptions, getPatientProfile } from "../../../../backEnd/api/services/patientApi";
+import React, { useState, useContext, useCallback } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Image, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from '@react-navigation/native';
+import { getMyPrescriptions, getPatientProfile, getResults } from "../../../../backEnd/api/services/patientApi";
 import { PatientContext } from "../../../../backEnd/context/PatientContext";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function HomeScreen({ navigation }) {
-
   const {
     profile,
     setProfile,
     medications,
     setMedications,
+    results,
+    setResults,
   } = useContext(PatientContext);
 
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchMedications();  
-    fetchProfile();
-  }, []);
-
   const fetchProfile = async () => {
     try {
       const data = await getPatientProfile();
-      console.log(data);
       setProfile(data);
+      console.log("✅ Fetched Profile");
+      return data;
     } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
+      console.error("❌ Profile Error:", err.response?.data || err.message);
+      return null;
     }
   };
 
   const fetchMedications = async () => {
     try {
-      const data = await getMyPrescriptions();
-      console.log(data);
+      const data = await getMyPrescriptions(); 
       setMedications(data);
+      console.log("✅ Fetched Medications");
     } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
+      console.error("❌ Medications Error:", err.response?.data || err.message);
     }
   };
+
+  const fetchResults = async () => {
+    try {
+      const data = await getResults();
+      setResults(data);
+      console.log("✅ Fetched Results");
+    } catch (err) {
+      console.error("❌ Results Error:", err.response?.data || err.message);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      const loadScreenData = async () => {
+        setLoading(true);
+        try {
+          await Promise.all([
+            fetchProfile(),
+            fetchMedications(),
+            fetchResults()
+          ]);
+        } catch (error) {
+          console.error("❌ Error loading screen data:", error.message);
+        } finally {
+          setLoading(false); 
+        }
+      };
+
+      loadScreenData();
+      return () => {};
+    }, []) 
+  );
 
   const Item = ({ icon, title, nav }) => (
     <View style={styles.item}>
@@ -56,6 +82,25 @@ export default function HomeScreen({ navigation }) {
       </TouchableOpacity>
     </View>
   );
+
+  // المتغيرات الخاصة بالحالة الصحية بناءً على آخر تحليل
+  const latestResult = results && results.length > 0 ? results[0] : null;
+  const severityLevel = latestResult?.result?.severity_level;
+  
+  // تحديد اللون والنص بناءً على الخطورة
+  let statusColor = "#ccc"; // رصاصي لو مفيش داتا
+  let statusText = "لا توجد بيانات";
+
+  if (severityLevel === "Severe") {
+    statusColor = "#e91e10"; // أحمر
+    statusText = "غير مستقر (خطير)";
+  } else if (severityLevel === "Moderate") {
+    statusColor = "#f59e0b"; // برتقالي
+    statusText = "متوسط";
+  } else if (severityLevel) {
+    statusColor = "#22c417"; // أخضر
+    statusText = "مستقر";
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -80,8 +125,8 @@ export default function HomeScreen({ navigation }) {
           <Text style={{ fontSize: 17, color: "#111111", fontWeight: "bold" }}>
             ادويتك
           </Text>
-          <TouchableOpacity onPress={() => navigation.navigate("medicins")}>
-            <Text style={{ fontSize: 15, color: "#784847", fontWeight: 400, textDecorationLine: "underline", textDecorationColor: "#784847" }}>
+          <TouchableOpacity onPress={() => navigation.navigate("Medicins")}>
+            <Text style={{ fontSize: 15, color: "#784847", fontWeight: "400", textDecorationLine: "underline", textDecorationColor: "#784847" }}>
               كل الادوية
             </Text>
           </TouchableOpacity>
@@ -89,8 +134,7 @@ export default function HomeScreen({ navigation }) {
 
         <View style={styles.card}>
           <View style={styles.textContainer2}>
-          
-            {medications && medications.allMedications ? (
+            {medications && medications.allMedications && medications.allMedications.length > 0 ? (
               medications.allMedications.map((item, index) => (
                 <View key={index} style={{ display: "flex", flexDirection: "row", gap: 10 }}>
                   <Text style={styles.medicineName}>{item.trim()}</Text>
@@ -100,7 +144,7 @@ export default function HomeScreen({ navigation }) {
                 </View>
               ))
             ) : (
-              <Text style={styles.subText}>جاري تحميل الأدوية...</Text>
+              <Text style={styles.subText}>لا توجد أدوية مسجلة حالياً...</Text>
             )}
           </View>
 
@@ -109,6 +153,7 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
 
+        {/* ===================== قسم الحالة الصحية ===================== */}
         <View style={styles.textContainer}>
           <Text style={{ fontSize: 18, color: "#111111", fontWeight: "bold" }}>
             حالتك الصحية
@@ -117,11 +162,12 @@ export default function HomeScreen({ navigation }) {
 
         <View style={styles.card}>
           <View style={{ display: "flex", flexDirection: "row", width: "100%", gap: 6, alignItems: "center" }}>
-            <View style={[styles.statusIndicator, { backgroundColor: profile?.healthStatus === 'مستقر' ? '#22c417' : '#e91e10' }]}></View>
-            <Text style={styles.medicineName}> {profile?.healthStatus === "مريض" ? "غير مستقر" : (profile?.healthStatus || "لا يوجد بيانات")} </Text>
+            <View style={[styles.statusIndicator, { backgroundColor: statusColor }]}></View>
+            <Text style={styles.medicineName}> {statusText} </Text>
           </View>
         </View>
 
+        {/* ===================== قسم آخر تحليل ===================== */}
         <View style={styles.textContainer}>
           <Text style={{ fontSize: 16, color: "#111111", fontWeight: "bold" }}>
             اخر تحليل
@@ -130,24 +176,29 @@ export default function HomeScreen({ navigation }) {
 
         <View style={styles.card}>
           <View style={styles.textContainer2}>
-            <View style={{ display: "flex", flexDirection: "row", gap: 10 }}>
-              <Text style={styles.medicineName}>مستوى الهيموغلوبين</Text>
-              <Text style={[styles.subText, { color: "#b9c422" }]}>
-                منخفض نسبيا
-              </Text>
-            </View>
+            {latestResult ? (
+              <View>
+                {/* التاريخ */}
+                <View style={{ display: "flex", flexDirection: "row", gap: 10, marginBottom: 8 }}>
+                  <Text style={styles.medicineName}>تاريخ التحليل:</Text>
+                  <Text style={[styles.time, { marginTop: 0 }]}>
+                    {new Date(latestResult.createdAt).toLocaleDateString('ar-EG', {
+                      year: 'numeric', month: 'short', day: 'numeric'
+                    })}
+                  </Text>
+                </View>
 
-            <View style={{ display: "flex", flexDirection: "row", gap: 10 }}>
-              <Text style={styles.medicineName}>مستوى التغيير</Text>
-              <Text style={[styles.subText, { color: "#22c417" }]}>
-                مستقر
-              </Text>
-            </View>
-
-            <View style={{ display: "flex", flexDirection: "row", gap: 10 }}>
-              <Text style={styles.time}> الوقت:</Text>
-              <Text style={styles.time}>3 ايام </Text>
-            </View>
+                {/* ملخص الدكتور */}
+                <View style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <Text style={styles.medicineName}>ملخص التقرير:</Text>
+                  <Text style={[styles.subText, { lineHeight: 22, textAlign: 'left' }]} numberOfLines={3}>
+                    {latestResult.result?.doctor_summary || "لا يوجد ملخص متاح لهذا التحليل."}
+                  </Text>
+                </View>
+              </View>
+            ) : (
+              <Text style={styles.subText}>لا توجد تحاليل مسجلة حالياً...</Text>
+            )}
           </View>
         </View>
 
@@ -155,9 +206,6 @@ export default function HomeScreen({ navigation }) {
     </SafeAreaView>
   );
 }
-
-
-
 
 const styles = StyleSheet.create({
   container: {
@@ -173,7 +221,6 @@ const styles = StyleSheet.create({
   },
   item: {
     alignItems: "center",
-    
     width: "32%",
     backgroundColor: "#FDFCF8",
     borderRadius: 10,
@@ -195,14 +242,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: "center",
   },
-
   containerImage: {
     marginTop: 10,
     width: "100%",
     alignItems: "center",
     borderRadius: 22,
   },
-
   textContainer: {
     marginTop: 6,
     paddingHorizontal: 20,
@@ -219,7 +264,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 12,
     borderRadius: 12,
-    elevation: 2, // Android shadow
+    elevation: 2, 
   },
   iconContainer: {
     width: 40,
@@ -232,21 +277,17 @@ const styles = StyleSheet.create({
   },
   textContainer2: {
     flex: 1,
-    
-    alignItems: "flex-Start",
+    alignItems: "flex-start", // تم تعديلها لتجنب تحذيرات الـ Layout
   },
-
   medicineName: {
     fontSize: 15,
     fontWeight: "bold",
   },
-
   subText: {
     fontSize: 13,
     color: "#777",
     marginTop: 2,
   },
-
   time: {
     fontSize: 13,
     color: "#555",

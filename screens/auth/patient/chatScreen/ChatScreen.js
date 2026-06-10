@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import {
-  View,
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  I18nManager
+    View,
+    FlatList,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
+    I18nManager
 } from 'react-native';
 
 

@@ -1,20 +1,47 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity , KeyboardAvoidingView, Platform } from "react-native";
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity , KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import InputField from "../../../components/InputField";
-import CustomButton from "../../../components/CustomButton";
+import { forgotPassword } from "../../../../backEnd/api/services/authApi";
 
 export default function ForgotPassword({ navigation }) {
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      Alert.alert("خطأ", "الرجاء إدخال البريد الإلكتروني");
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      Alert.alert("خطأ", "البريد الإلكتروني غير صحيح");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await forgotPassword(email);
+      navigation.navigate("VerifyCode", { email });
+    } catch (error) {
+      Alert.alert("خطأ", error.response?.data?.message || "حدث خطأ في الاتصال");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-        <KeyboardAvoidingView 
-        behavior={Platform.OS === "ios" ? "padding" : "height"} 
+        <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
@@ -28,18 +55,16 @@ export default function ForgotPassword({ navigation }) {
           onChangeText={setEmail}
           keyboardType="email-address"
         />
-        <InputField
-          label="رقم التليفون"
-          placeholder="رقم تلفونك"
-          value={phone}
-          onChangeText={setPhone}
-          keyboardType="phone-pad"
-        />
         <TouchableOpacity
-          style={styles.mainButton}
-          onPress={() => navigation.navigate("VerifyCode")}
+          style={[styles.mainButton, loading && styles.buttonDisabled]}
+          onPress={handleForgotPassword}
+          disabled={loading}
         >
-          <Text style={styles.buttonText}>التالي</Text>
+          {loading ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.buttonText}>التالي</Text>
+          )}
         </TouchableOpacity>
       </View>
       </ScrollView>
@@ -55,9 +80,9 @@ const styles = StyleSheet.create({
     paddingTop: 40,
   },
   scrollContent: {
-    flexGrow: 1, 
+    flexGrow: 1,
     paddingHorizontal: 8,
-    paddingBottom: 40, 
+    paddingBottom: 40,
   },
   headerTitle: {
     fontSize: 22,
@@ -67,28 +92,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: "#1A1A1A",
   },
-  headerTitleCenter: {
-    fontSize: 20,
-    fontWeight: "800",
-    textAlign: "center",
-    marginBottom: 15,
-  },
-  subTitle: {
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-    lineHeight: 22,
-    marginBottom: 30,
-  },
   inputsContainer: {
     gap: 15,
-  },
-  hintText: {
-    fontSize: 12,
-    color: "#999",
-    textAlign: "right",
-    marginTop: -10,
-    marginBottom: 5,
   },
   mainButton: {
     backgroundColor: "#7D0A0A",
@@ -97,6 +102,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginTop: 250,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: "#FFFFFF",

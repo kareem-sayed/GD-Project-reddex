@@ -2,15 +2,18 @@ import React from "react";
 import { View, Text, StyleSheet, I18nManager, Platform } from "react-native";
 
 export default function MessageBubble({ message }) {
-  const isUser = message.sender === "user";
+  const isUser = message.sender === 'user';
 
   return (
     <View style={[styles.row, isUser ? styles.rowUser : styles.rowBot]}>
       <View
         style={[styles.bubble, isUser ? styles.userBubble : styles.botBubble]}
       >
-        <Text style={[styles.text, isUser ? styles.userText : styles.botText]}>
-          {message.text}
+        <Text
+          style={[styles.text, isUser ? styles.userText : styles.botText]}
+          numberOfLines={0}
+        >
+          {displayText}
         </Text>
       </View>
     </View>
@@ -39,6 +42,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
+    justifyContent: 'center',
   },
   userBubble: {
     backgroundColor: "#FFFFFF",
@@ -53,15 +57,15 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 14.5,
     lineHeight: 22,
-    textAlign: "right",
-    writingDirection: "rtl",
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   userText: {
     color: "#2A2A2A",
     fontFamily: Platform.OS === "ios" ? "Helvetica Neue" : "sans-serif",
   },
   botText: {
-    color: "#2A2A2A",
-    fontFamily: Platform.OS === "ios" ? "Helvetica Neue" : "sans-serif",
+    color: '#2A2A2A',
+    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
   },
 });

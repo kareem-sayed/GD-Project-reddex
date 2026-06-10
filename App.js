@@ -36,11 +36,15 @@ import ResetPassword from "./screens/auth/doctor/doctorRegister/ResetPassword";
 
 import TabsNavigation from "./navigation/TabsNavigation";
 
-import medicins from "./screens/auth/patient/HomeScreens/medicins";
-import ChatScreen from "./screens/auth/patient/chatScreen/ChatScreen";
+import DoctorDetailsScreen from "./screens/auth/patient/SearchScreens/DoctorDetailsScreen"; 
+import LabsDetailsScreen from "./screens/auth/patient/SearchScreens/LabsDetailsScreen";
+
+import Medicins from "./screens/auth/patient/HomeScreens/Medicins";
+import ChatScreen from "./screens/auth/patient/ChatScreen/ChatScreen";
 
 import UploadFileScreen from "./screens/auth/patient/InsertAnalysis/UploadFileScreen";
 import ManualInputScreen from "./screens/auth/patient/InsertAnalysis/ManualInputScreen";
+import AnalysisResultScreen from "./screens/auth/patient/AnalysisScreen/AnalysisResultScreen";
 
 import EditAccount from "./screens/auth/patient/EditAccount/EditAccount";
 import ProfileSettings from "./screens/auth/patient/ProfileSettings/profileSettings";
@@ -132,12 +136,34 @@ function PatientNavigator() {
   return (
     <PatientStack.Navigator screenOptions={{ headerShown: false }}>
       {/* Main Tabs */}
-      <PatientStack.Screen name="MainTabs" component={TabsNavigation} />
+      <PatientStack.Screen
+        name="MainTabs"
+        component={TabsNavigation}
+      />
+
+      <PatientStack.Screen
+        name="DoctorDetailsScreen"
+        component={DoctorDetailsScreen}
+      />
+      <PatientStack.Screen
+        name="LabsDetailsScreen"
+        component={LabsDetailsScreen}
+      />
 
       {/* Patient Screens */}
-      <PatientStack.Screen name="ChatScreen" component={ChatScreen} />
+      <PatientStack.Screen
+        name="ChatScreen"
+        component={ChatScreen}
+      />
+      <PatientStack.Screen
+        name="AnalysisResultScreen"
+        component={AnalysisResultScreen}
+      /> 
 
-      <PatientStack.Screen name="medicins" component={medicins} />
+      <PatientStack.Screen
+        name="Medicins"
+        component={Medicins}
+      />
 
       <PatientStack.Screen
         name="UploadFileScreen"
