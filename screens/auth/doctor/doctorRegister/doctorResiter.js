@@ -1,8 +1,15 @@
 import { StyleSheet, Text, View, StatusBar, TouchableOpacity } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState , useContext} from 'react';
+import { AuthContext } from "../../../../backEnd/context/AuthContext";
 import { SafeAreaView } from 'react-native-safe-area-context'
 import InputField from "../../../components/InputField";
 import CustomButton from "../../../components/CustomButton";
+
+
+// استيراد دالة الـ login الجاهزة من ملف الـ auth api بتاعكم
+import { login } from "../../../../backEnd/api/services/authApi";
+// استيراد دالة حفظ التوكن
+import { saveToken } from "../../../../backEnd/storage/tokenStorage";
 
 export default function DoctorLogin({ navigation }) {
 

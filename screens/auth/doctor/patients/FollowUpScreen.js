@@ -6,39 +6,249 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
-  platform,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons"; 
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
+import mainClient from "../../../..//backEnd/api/clients/mainClient";
 
 export default function FollowUpScreen({ navigation }) {
   const route = useRoute();
-  
-  // receive patient data from previous screen, if available
-  const { patient } = route.params || {};
 
-  // TODO: Replace filtering logic when backend provides follow-up status API
-  
-  const [currentMeds, setCurrentMeds] = useState([
-    { id: "1", name: "Rocaltrol", dose: "مرة يومياً" },
-    { id: "2", name: "Ferrous Sulfate 200 mg", dose: "مرة يومياً" },
-    { id: "3", name: "Folic Acid 5 mg", dose: "مرة يومياً" },
-  ]);
+  // استقبال المريض الممرر من شاشة المرضى السابقة
+  const { patient: initialPatient } = route.params || {};
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [patientData, setPatientData] = useState(initialPatient || null);
+  const [aiAnalysis, setAiAnalysis] = useState("");
+  const [currentMeds, setCurrentMeds] = useState([]);
+
+  useEffect(() => {
+    fetchScreenData();
+  }, [initialPatient?.id]);
+
+  // تحديث قائمة الأدوية فوراً لو عاد من شاشة التعديل MedicationsScreen ببيانات جديدة
   useEffect(() => {
     if (route.params?.updatedMeds) {
       setCurrentMeds(route.params.updatedMeds);
     }
   }, [route.params?.updatedMeds]);
 
+  const fetchScreenData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // 1. تأمين جلب الـ IDs بشكل مرن جداً لقراءة الحسابات
+      const targetPatientId = initialPatient?.id;
+      const targetUserId =
+        initialPatient?.userId ||
+        initialPatient?.user?.id ||
+        initialPatient?.id;
+
+      // إذا لم يكن هناك أي معرف للمريض (بيانات تجريبية يدوية في الكود)
+      if (!targetPatientId) {
+        console.log(
+          "تنبيه: يتم عرض بيانات مريض متابعة تجريبية أو ناقصة الـ ID",
+        );
+        if (initialPatient) {
+          setPatientData(initialPatient);
+        }
+        setAiAnalysis("لا يوجد تحليل ذكاء اصطناعي متاح للحسابات التجريبية.");
+        setCurrentMeds([
+          { id: "1", name: "Rocaltrol", dose: "مرة يومياً" },
+          { id: "2", name: "Ferrous Sulfate 200 mg", dose: "مرة يومياً" },
+          { id: "3", name: "Folic Acid 5 mg", dose: "مرة يومياً" },
+        ]);
+        setLoading(false);
+        return;
+      }
+
+      console.log("FOLLOW UP PATIENT ID:", targetPatientId);
+      console.log("FOLLOW UP USER ID:", targetUserId);
+
+      // 2. جلب البيانات بالتوازي مع حماية كاملة لو تعطل أي API
+      const [aiResponse, prescriptionResponse] = await Promise.all([
+        mainClient.get(`/results/patient/${targetUserId}`).catch((err) => {
+          console.log("AI Results Error (FollowUp):", err.message);
+          return { data: { data: [] } };
+        }),
+        mainClient
+          .get(`/prescriptions/patient/${targetPatientId}`)
+          .catch((err) => {
+            console.log("Prescriptions Error (FollowUp):", err.message);
+            return { data: { data: [] } };
+          }),
+      ]);
+
+      // 3. تحديث بيانات المريض الأساسية
+      if (initialPatient) {
+        setPatientData(initialPatient);
+      }
+
+      // 4. معالجة بيانات الذكاء الاصطناعي بأمان
+      const aiResults = aiResponse?.data?.data || [];
+      if (aiResults.length > 0) {
+        const latestResult = aiResults[0];
+        setAiAnalysis(
+          latestResult?.result?.final_report ||
+            latestResult?.result?.disease_type ||
+            "لا يوجد تحليل متاح حالياً.",
+        );
+      } else {
+        setAiAnalysis("لا يوجد تحليل ذكاء اصطناعي متاح حالياً لهذا المريض.");
+      }
+
+      // 5. معالجة قائمة الأدوية القادمة من قاعدة البيانات
+      const medsData = prescriptionResponse?.data?.data || [];
+      if (medsData.length > 0) {
+        const formattedMeds = medsData.map((med, index) => ({
+          id: med.id?.toString() || index.toString(),
+          name: med.medicineName || med.name || "دواء غير مسمى",
+          dose: med.dose || med.instructions || "حسب إرشادات الطبيب",
+        }));
+        setCurrentMeds(formattedMeds);
+      } else {
+        setCurrentMeds([]);
+      }
+    } catch (err) {
+      console.log("Error fetching follow up patient screen data:", err);
+      setError(
+        "حدث خطأ أثناء تحميل تفاصيل المتابعة الحالية. يرجى المحاولة لاحقاً.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color="#641919" />
+        <Text style={{ marginTop: 10, color: "#666" }}>
+          جاري تحميل بيانات المتابعة...
+        </Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView
+        style={[
+          styles.container,
+          {
+            justifyContent: "center",
+            alignItems: "center",
+            paddingHorizontal: 20,
+          },
+        ]}
+      >
+        <Text
+          style={{
+            color: "#D32F2F",
+            textAlign: "center",
+            fontSize: 16,
+            marginBottom: 20,
+          }}
+        >
+          {error}
+        </Text>
+        <TouchableOpacity
+          style={{ backgroundColor: "#641919", padding: 12, borderRadius: 8 }}
+          onPress={fetchScreenData}
+        >
+          <Text style={{ color: "#FFF", fontWeight: "bold" }}>
+            إعادة المحاولة
+          </Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
+  // استخراج تفاصيل الصورة والبيانات الأساسية بشكل آمن لتفادي الـ Undefined والانهيارات
+  const patientUser = patientData?.user || {};
+  const displayName =
+    patientData?.name || patientUser?.name || "مريض غير معروف";
+  const displayAge = patientData?.age || patientUser?.age || "--";
+  const displayGender =
+    patientData?.gender ||
+    (patientUser?.gender === "FEMALE" ? "أنثى" : "ذكر") ||
+    "غير محدد";
+  const displayBlood = patientData?.bloodType || "--";
+  const displayImage =
+    patientData?.image ||
+    patientData?.photo ||
+    patientData?.photoUrl ||
+    patientUser?.photourl;
+
+  // المؤشرات الحيوية المحددة مسبقاً للعرض في شاشة المتابعة
   const vitals = [
-    { id: "1", label: "الحديد", value: "180", unit: "ug/dL", status: "مرتفع", color: "#F59F00", trend: "trending-up", bg: "#FFF9DB" },
-    { id: "2", label: "الفيريتين", value: "400", unit: "ng/mL", status: "مرتفع", color: "#F59F00", trend: "trending-up", bg: "#FFF9DB" },
-    { id: "3", label: "الهيموجلوبين", value: "11.5", unit: "g/dL", status: "منخفض قليلاً", color: "#F59F00", trend: "trending-down", bg: "#FFF9DB" },
-    { id: "4", label: "ك. الدم البيضاء", value: "11.0", unit: "x10^9/L", status: "مرتفع قليلاً", color: "#F59F00", trend: "trending-up", bg: "#FFF9DB" },
-    { id: "5", label: "الصفائح الدموية", value: "240", unit: "x10^3/uL", status: "طبيعي", color: "#2F9E44", bg: "#F6FFF8" },
-    { id: "6", label: "ك. الدم الحمراء", value: "4.6", unit: "x10^6/uL", status: "طبيعي", color: "#2F9E44", bg: "#F6FFF8" },
+    {
+      id: "1",
+      label: "الحديد",
+      value: "180",
+      unit: "ug/dL",
+      status: "مرتفع",
+      color: "#F59F00",
+      trend: "trending-up",
+      bg: "#FFF9DB",
+    },
+    {
+      id: "2",
+      label: "الفيريتين",
+      value: "400",
+      unit: "ng/mL",
+      status: "مرتفع",
+      color: "#F59F00",
+      trend: "trending-up",
+      bg: "#FFF9DB",
+    },
+    {
+      id: "3",
+      label: "الهيموجلوبين",
+      value: "11.5",
+      unit: "g/dL",
+      status: "منخفض قليلاً",
+      color: "#F59F00",
+      trend: "trending-down",
+      bg: "#FFF9DB",
+    },
+    {
+      id: "4",
+      label: "ك. الدم البيضاء",
+      value: "11.0",
+      unit: "x10^9/L",
+      status: "مرتفع قليلاً",
+      color: "#F59F00",
+      trend: "trending-up",
+      bg: "#FFF9DB",
+    },
+    {
+      id: "5",
+      label: "الصفائح الدموية",
+      value: "240",
+      unit: "x10^3/uL",
+      status: "طبيعي",
+      color: "#2F9E44",
+      bg: "#F6FFF8",
+    },
+    {
+      id: "6",
+      label: "ك. الدم الحمراء",
+      value: "4.6",
+      unit: "x10^6/uL",
+      status: "طبيعي",
+      color: "#2F9E44",
+      bg: "#F6FFF8",
+    },
   ];
 
   return (
@@ -51,20 +261,36 @@ export default function FollowUpScreen({ navigation }) {
         <Text style={styles.headerTitle}>المرضى</Text>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Patient Profile */}
         <View style={styles.patientProfile}>
-          {patient?.image || patient?.photo || patient?.photoUrl ? (
-            <Image source={{ uri: patient.image || patient.photo || patient.photoUrl }} style={styles.avatar} />
+          {displayImage ? (
+            <Image source={{ uri: displayImage }} style={styles.avatar} />
           ) : (
-            <View style={[styles.avatar, { backgroundColor: "#E0E0E0", justifyContent: "center", alignItems: "center" }]}>
-              <MaterialCommunityIcons name="account-circle-outline" size={32} color="#757575" />
+            <View
+              style={[
+                styles.avatar,
+                {
+                  backgroundColor: "#E0E0E0",
+                  justifyContent: "center",
+                  alignItems: "center",
+                },
+              ]}
+            >
+              <MaterialCommunityIcons
+                name="account-circle-outline"
+                size={32}
+                color="#757575"
+              />
             </View>
           )}
           <View style={styles.profileText}>
-            <Text style={styles.patientName}>{patient?.name || "أحمد خالد"}</Text>
+            <Text style={styles.patientName}>{displayName}</Text>
             <Text style={styles.patientSubInfo}>
-              {patient?.age || "29"} سنة | {patient?.gender || "ذكر"} | فصيلة الدم : {patient?.bloodType || "+AB"}
+              {displayAge} سنة | {displayGender} | فصيلة الدم : {displayBlood}
             </Text>
           </View>
         </View>
@@ -92,9 +318,17 @@ export default function FollowUpScreen({ navigation }) {
         <Text style={styles.sectionTitle}>المؤشرات الحيوية</Text>
         <View style={styles.vitalsGrid}>
           {vitals.map((item) => (
-            <View key={item.id} style={[styles.vitalCard, { borderStartColor: item.color, backgroundColor: "#FCFCFC" }]}>
+            <View
+              key={item.id}
+              style={[
+                styles.vitalCard,
+                { borderStartColor: item.color, backgroundColor: "#FCFCFC" },
+              ]}
+            >
               <View style={styles.vitalHeader}>
-                {item.trend && <Ionicons name={item.trend} size={16} color={item.color} />}
+                {item.trend && (
+                  <Ionicons name={item.trend} size={16} color={item.color} />
+                )}
                 <Text style={styles.vitalLabel}>{item.label}</Text>
               </View>
               <View style={styles.vitalValueRow}>
@@ -102,7 +336,9 @@ export default function FollowUpScreen({ navigation }) {
                 <Text style={styles.vitalUnit}>{item.unit}</Text>
               </View>
               <View style={[styles.statusBadge, { backgroundColor: item.bg }]}>
-                <Text style={[styles.statusText, { color: item.color }]}>{item.status}</Text>
+                <Text style={[styles.statusText, { color: item.color }]}>
+                  {item.status}
+                </Text>
               </View>
             </View>
           ))}
@@ -114,9 +350,7 @@ export default function FollowUpScreen({ navigation }) {
           <View style={styles.aiIconCircle}>
             <Ionicons name="sparkles" size={18} color="#333" />
           </View>
-          <Text style={styles.aiText}>
-            تحليل الدم الحالي يشير إلى أن مستويات الحديد ومخزون الفيريتين مرتفعان قليلاً... الحالة تحتاج مراقبة دورية.
-          </Text>
+          <Text style={styles.aiText}>{aiAnalysis}</Text>
         </View>
 
         {/* Medications Section */}
@@ -126,7 +360,7 @@ export default function FollowUpScreen({ navigation }) {
               navigation.navigate("MedicationsScreen", {
                 initialMeds: currentMeds,
                 targetScreen: "FollowUpScreen",
-                patientId: patient?.id
+                patientId: patientData?.id,
               })
             }
           >
@@ -136,12 +370,20 @@ export default function FollowUpScreen({ navigation }) {
         </View>
 
         <View style={styles.medicationList}>
-          {currentMeds.map((med) => (
-            <View key={med.id} style={styles.medItem}>
-              <Text style={styles.medTime}>{med.dose}</Text>
-              <Text style={styles.medName}>{med.name}</Text>
+          {currentMeds.length > 0 ? (
+            currentMeds.map((med) => (
+              <View key={med.id} style={styles.medItem}>
+                <Text style={styles.medTime}>{med.dose}</Text>
+                <Text style={styles.medName}>{med.name}</Text>
+              </View>
+            ))
+          ) : (
+            <View style={{ paddingVertical: 15, alignItems: "center" }}>
+              <Text style={{ color: "#999", fontSize: 14 }}>
+                لا توجد أدوية مسجلة حالياً لهذا المريض.
+              </Text>
             </View>
-          ))}
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -153,19 +395,15 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    // padding: 20,
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 10,
     backgroundColor: "#FFF",
-    // iOS
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    // Android
     elevation: 4,
-
     borderBottomWidth: 0.2,
     borderBottomColor: "#EEE",
   },
@@ -231,7 +469,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderStartWidth: 4,
     backgroundColor: "#FCFCFC",
-    // elevation: 1,
     shadowColor: "#000",
     shadowOpacity: 0.05,
   },
@@ -297,4 +534,3 @@ const styles = StyleSheet.create({
   medName: { fontSize: 16, color: "#333", fontWeight: "500" },
   medTime: { fontSize: 12, color: "#AAA" },
 });
-

@@ -194,9 +194,9 @@ export default function DoctorHomeScreen({ navigation }) {
               ]}
             >
               <MaterialCommunityIcons
-                name="account-circle-outline"
-                size={32}
-                color="#757575"
+                name="account-circle"
+                size={40}
+                color="#8e8e8e"
               />
             </View>
           )}
@@ -205,11 +205,6 @@ export default function DoctorHomeScreen({ navigation }) {
               ? "جاري التحميل..."
               : `أهلاً، د. ${doctorInfo?.user?.name || "الطبيب"}`}
           </Text>
-          {/* <Image
-            source={require("../../../../assets/images/profile/patient1.png")}
-            style={styles.doctorImage}
-          />
-          <Text style={styles.greeting}>أهلاً، د. عادل</Text> */}
         </View>
       </View>
     );
@@ -220,7 +215,6 @@ export default function DoctorHomeScreen({ navigation }) {
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={{ width: "100%" }}
-        // contentContainerStyle={{ paddingHorizontal: 15, paddingBottom: 20 }}
       >
         <Header />
         {/* Stats cards section */}

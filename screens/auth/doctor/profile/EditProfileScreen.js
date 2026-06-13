@@ -25,11 +25,42 @@ import {
   updateOnlyDoctorData,
 } from "../../../../backEnd/api/services/doctorApi";
 
+const InputField = ({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  icon,
+  isLocation,
+}) => (
+  <View style={styles.inputContainer}>
+    <Text style={styles.label}>{label}</Text>
+    <View style={styles.inputWrapper}>
+      {icon && (
+        <Ionicons name={icon} size={18} color="#999" style={styles.inputIcon} />
+      )}
+      <TextInput
+        style={[styles.input, { textAlign: "right" }]}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+      />
+      {isLocation && (
+        <Ionicons name="location-outline" size={18} color="#999" />
+      )}
+    </View>
+  </View>
+);
+
 export default function EditProfileScreen({ route, navigation }) {
   const { userData } = route.params || {};
+  const { doctorId } = route.params;
+
   const [menuVisible, setMenuVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState(userData?.id || "");
+
+  // const [doctorId, setDoctorId] = useState(null);
 
   // --- States ---
   const [name, setName] = useState(userData?.name || "عادل حافظ");
@@ -71,8 +102,11 @@ export default function EditProfileScreen({ route, navigation }) {
         setLoading(true);
         const response = await getDoctorProfile();
         const serverData = response?.data?.data;
+
         if (serverData) {
-          setUserId(serverData.user?.id || serverData.user?._id || "");
+          setDoctorId(serverData.id);
+
+          setUserId(serverData.user?.id || "");
           setName(serverData.user?.name || "عادل حافظ");
           setEmail(serverData.user?.email || "email@domain.com");
           setPhone(serverData.user?.phone || "01234567899");
@@ -105,7 +139,7 @@ export default function EditProfileScreen({ route, navigation }) {
       return;
     }
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.MediaType.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 1,
@@ -123,189 +157,68 @@ export default function EditProfileScreen({ route, navigation }) {
     }
   };
 
-  // // حفظ التعديلات وإرسالها كاملة للسيرفر
-  // const handleSave = async () => {
-  //   try {
-  //     setLoading(true);
-
-  //     const daysMapping = {
-  //       س: "سبت",
-  //       ح: "أحد",
-  //       ن: "اثنين",
-  //       ت: "ثلاثاء",
-  //       ر: "أربعاء",
-  //       خ: "خميس",
-  //       ج: "جمعة",
-  //     };
-  //     const formattedDays = selectedDays
-  //       .map((day) => daysMapping[day])
-  //       .join(" - ");
-
-  //     // تجميع الـ payload بالكامل تبعا للمسميات المتوقعة في السيرفر
-  //     const payload = {
-  //       name: name,
-  //       email: email,
-  //       phone: phone,
-  //       specialty: specialty,
-  //       yearsExperience: experience,
-  //       clinicName: clinicName,
-  //       clinicLocation: address,
-  //       price: price,
-  //       consultation: consultation,
-  //       workingHours: `${startTime} إلي ${endTime}`,
-  //       workingDays: formattedDays,
-  //     };
-
-  //     console.log(`LOG: Updating user profile for ID: ${userId}...`);
-  //     await updateDoctorProfile(userId, payload);
-
-  //     Alert.alert("نجاح", "تم تحديث الملف الشخصي بنجاح على السيرفر.", [
-  //       {
-  //         text: "حسناً",
-  //         onPress: () => navigation.goBack(), // نرجع فوراً والـ useFocusEffect في الشاشة السابقة هيتكفل بالباقي
-  //       },
-  //     ]);
-  //   } catch (error) {
-  //     console.log("LOG: Error updating profile parameters:", error);
-  //     Alert.alert(
-  //       "خطأ",
-  //       "فشل في حفظ التعديلات على السيرفر، يرجى المحاولة مرة أخرى.",
-  //     );
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // حفظ التعديلات وإرسالها كاملة للسيرفر بالمسميات الصحيحة
-  // const handleSave = async () => {
-  //   try {
-  //     setLoading(true);
-
-  //     // 1. تحويل الحروف لأيام كاملة متوافقة مع السيرفر
-  //     const daysMapping = {
-  //       س: "السبت",
-  //       ح: "الأحد",
-  //       ن: "الإثنين",
-  //       ت: "الثلاثاء",
-  //       ر: "الأربعاء",
-  //       خ: "الخميس",
-  //       ج: "الجمعة"
-  //     };
-
-  //     const formattedDaysArray = selectedDays.map((day) => daysMapping[day] || day);
-
-  //     // 2. تجميع الـ payload بالمسميات والأنواع الصحيحة للسيرفر
-  //     const payload = {
-  //       name: name,
-  //       email: email,
-  //       phone: phone,
-  //       specialty: specialty,
-  //       yearsExperience: Number(experience), // تحويل الخبرة إلى رقم
-  //       nameOfClinic: clinicName,            // المسمى الصحيح للسيرفر بدلاً من clinicName
-  //       locationOfClinic: address,           // المسمى الصحيح للسيرفر بدلاً من clinicLocation
-  //       price: price,
-  //       consultation: consultation,
-  //       workingHours: `${startTime} إلي ${endTime}`,
-  //       workdays: formattedDaysArray,        // إرسالها كمصفوفة بدلاً من نص مدموج
-  //     };
-
-  //     console.log(`LOG: Updating user profile for ID: ${userId}...`);
-  //     await updateDoctorProfile(userId, payload);
-
-  //     Alert.alert("نجاح", "تم تحديث الملف الشخصي بنجاح على السيرفر.", [
-  //       {
-  //         text: "حسناً",
-  //         onPress: () => navigation.goBack(),
-  //       },
-  //     ]);
-  //   } catch (error) {
-  //     console.log("LOG: Error updating profile parameters:", error);
-  //     Alert.alert("خطأ", "فشل في حفظ التعديلات على السيرفر، يرجى المحاولة مرة أخرى.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
   const handleSave = async () => {
     try {
       setLoading(true);
 
-      const daysMapping = {
+      const daysMap = {
         س: "السبت",
         ح: "الأحد",
         ن: "الإثنين",
         ت: "الثلاثاء",
         ر: "الأربعاء",
-        kh: "الخميس",
+        خ: "الخميس",
         ج: "الجمعة",
       };
-      const formattedDaysArray = selectedDays.map(
-        (day) => daysMapping[day] || day,
-      );
-
+      const formattedDaysArray = selectedDays
+        .map((d) => daysMap[d])
+        .filter(Boolean);
       const doctorPayload = {
         specialty: specialty,
         yearsExperience: Number(experience),
         nameOfClinic: clinicName,
         locationOfClinic: address,
-        price: Number(price),
-        consultation: Number(consultation),
-        workingHours: `${startTime} إلي ${endTime}`,
+        workingHours: `${startTime} - ${endTime}`,
         workdays: formattedDaysArray,
       };
+      console.log(
+        "LOG: Updating doctor table on /doctors/" + doctorId + " ...",
+      );
 
-      console.log("LOG: Updating doctor table on /doctors/5 ...");
+      console.log("DOCTOR PAYLOAD:", JSON.stringify(doctorPayload, null, 2));
 
-      // استدعاء الدالة الموجهة للمسار الصريح بعد عمل الـ Import لها فوق
-      await updateOnlyDoctorData(5, doctorPayload);
+      console.log("doctorId used:", doctorId);
+
+      if (!doctorId) {
+        Alert.alert("خطأ", "لم يتم العثور على معرف الطبيب");
+        return;
+      }
+
+      const response = await updateOnlyDoctorData(doctorId, doctorPayload);
+
+      console.log("PATCH SUCCESS:", JSON.stringify(response?.data, null, 2));
 
       Alert.alert("نجاح", "تم تحديث بيانات العيادة والتخصص بنجاح.", [
         { text: "حسناً", onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
-      if (error.response) {
-        console.log(
-          "❌ NEW DOCTOR ROUTE ERROR:",
-          JSON.stringify(error.response.data, null, 2),
-        );
-      } else {
-        console.log("LOG: Error:", error);
+      if (!error || typeof error !== "object") {
+        console.log("UNKNOWN ERROR TYPE:", error);
+        return;
       }
+      console.log("FULL ERROR:", error?.response?.data || error.message);
+      const status = error?.response?.status;
+      const data = error?.response?.data;
+
+      console.log("STATUS:", status);
+      console.log("DATA:", data);
+      console.log("MESSAGE:", error?.message);
+
       Alert.alert("خطأ", "فشل في حفظ التعديلات.");
     } finally {
       setLoading(false);
     }
   };
-  const InputField = ({
-    label,
-    value,
-    onChangeText,
-    placeholder,
-    icon,
-    isLocation,
-  }) => (
-    <View style={styles.inputContainer}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={styles.inputWrapper}>
-        {icon && (
-          <Ionicons
-            name={icon}
-            size={18}
-            color="#999"
-            style={styles.inputIcon}
-          />
-        )}
-        <TextInput
-          style={[styles.input, { textAlign: "right" }]}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-        />
-        {isLocation && (
-          <Ionicons name="location-outline" size={18} color="#999" />
-        )}
-      </View>
-    </View>
-  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -371,6 +284,7 @@ export default function EditProfileScreen({ route, navigation }) {
         </View>
       ) : (
         <ScrollView
+          keyboardShouldPersistTaps="always"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >

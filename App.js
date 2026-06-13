@@ -211,7 +211,6 @@ function DoctorNavigator() {
         name="CriticalCondition"
         component={CriticalCondition}
       />
-
       <DoctorStack.Screen name="StableCondition" component={StableCondition} />
 
       <DoctorStack.Screen name="FollowUpScreen" component={FollowUpScreen} />

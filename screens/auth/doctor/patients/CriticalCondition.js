@@ -6,31 +6,188 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
-  platform,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
+import mainClient from "../../../..//backEnd/api/clients/mainClient";
 
 export default function CriticalCondition({ navigation }) {
   const route = useRoute();
-  const { patient } = route.params || {};
+  // استقبال المريض الممرر من شاشة المرضى السابقة
+  const { patient: initialPatient } = route.params || {};
 
-  // TODO: Backend does not provide critical patients endpoint
-  // data is hardcoded for demonstration purposes, will be replaced with real API data when available
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [patientData, setPatientData] = useState(initialPatient || null);
+  const [aiAnalysis, setAiAnalysis] = useState("");
+  const [currentMeds, setCurrentMeds] = useState([]);
 
-  const [currentMeds, setCurrentMeds] = useState([
-    { id: "1", name: "Rocaltrol", dose: "مرة يومياً" },
-    { id: "2", name: "Ferrous Sulfate 200 mg", dose: "مرة يومياً" },
-    { id: "3", name: "Folic Acid 5 mg", dose: "مرة يومياً" },
-  ]);
+  useEffect(() => {
+    fetchScreenData();
+  }, [initialPatient?.id]);
 
+  // تحديث قائمة الأدوية فوراً لو عاد من شاشة التعديل MedicationsScreen ببيانات جديدة
   useEffect(() => {
     if (route.params?.updatedMeds) {
       setCurrentMeds(route.params.updatedMeds);
     }
   }, [route.params?.updatedMeds]);
 
+  const fetchScreenData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // 1. تأمين جلب الـ IDs بشكل مرن جداً
+      const targetPatientId = initialPatient?.id;
+      const targetUserId =
+        initialPatient?.userId ||
+        initialPatient?.user?.id ||
+        initialPatient?.id;
+
+      // إذا لم يكن هناك أي معرف للمريض (بيانات تجريبية يدوية)
+      if (!targetPatientId) {
+        console.log("تنبيه: يتم عرض بيانات مريض حرجة تجريبية أو ناقصة الـ ID");
+        if (initialPatient) {
+          setPatientData(initialPatient);
+        }
+        setAiAnalysis("لا يوجد تحليل ذكاء اصطناعي متاح للحسابات التجريبية.");
+        setCurrentMeds([
+          { id: "1", name: "Rocaltrol", dose: "مرة يومياً" },
+          { id: "2", name: "Ferrous Sulfate 200 mg", dose: "مرة يومياً" },
+          { id: "3", name: "Folic Acid 5 mg", dose: "مرة يومياً" },
+        ]);
+        setLoading(false);
+        return;
+      }
+
+      console.log("CRITICAL PATIENT ID:", targetPatientId);
+      console.log("CRITICAL USER ID:", targetUserId);
+
+      // 2. جلب البيانات بالتوازي مع حماية كاملة لو تعطل أي API
+      const [aiResponse, prescriptionResponse] = await Promise.all([
+        mainClient.get(`/results/patient/${targetUserId}`).catch((err) => {
+          console.log("AI Results Error (Critical):", err.message);
+          return { data: { data: [] } };
+        }),
+        mainClient
+          .get(`/prescriptions/patient/${targetPatientId}`)
+          .catch((err) => {
+            console.log("Prescriptions Error (Critical):", err.message);
+            return { data: { data: [] } };
+          }),
+      ]);
+
+      // 3. تحديث بيانات المريض الأساسية
+      if (initialPatient) {
+        setPatientData(initialPatient);
+      }
+
+      // 4. معالجة بيانات الذكاء الاصطناعي بأمان
+      const aiResults = aiResponse?.data?.data || [];
+      if (aiResults.length > 0) {
+        const latestResult = aiResults[0];
+        setAiAnalysis(
+          latestResult?.result?.final_report ||
+            latestResult?.result?.disease_type ||
+            "لا يوجد تحليل متاح حالياً.",
+        );
+      } else {
+        setAiAnalysis("لا يوجد تحليل ذكاء اصطناعي متاح حالياً لهذا المريض.");
+      }
+
+      // 5. معالجة قائمة الأدوية بأمان من السيرفر
+      const medsData = prescriptionResponse?.data?.data || [];
+      if (medsData.length > 0) {
+        const formattedMeds = medsData.map((med, index) => ({
+          id: med.id?.toString() || index.toString(),
+          name: med.medicineName || med.name || "دواء غير مسمى",
+          dose: med.dose || med.instructions || "حسب إرشادات الطبيب",
+        }));
+        setCurrentMeds(formattedMeds);
+      } else {
+        // Fallback في حال لا يوجد أدوية بالسيرفر للمريض الحقيقي
+        setCurrentMeds([]);
+      }
+    } catch (err) {
+      console.log("Error fetching critical patient details screen data:", err);
+      setError(
+        "حدث خطأ أثناء تحميل تفاصيل المريض الحرج. يرجى المحاولة لاحقاً.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color="#641919" />
+        <Text style={{ marginTop: 10, color: "#666" }}>
+          جاري تحميل البيانات الحرجية...
+        </Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView
+        style={[
+          styles.container,
+          {
+            justifyContent: "center",
+            alignItems: "center",
+            paddingHorizontal: 20,
+          },
+        ]}
+      >
+        <Text
+          style={{
+            color: "#D32F2F",
+            textAlign: "center",
+            fontSize: 16,
+            marginBottom: 20,
+          }}
+        >
+          {error}
+        </Text>
+        <TouchableOpacity
+          style={{ backgroundColor: "#641919", padding: 12, borderRadius: 8 }}
+          onPress={fetchScreenData}
+        >
+          <Text style={{ color: "#FFF", fontWeight: "bold" }}>
+            إعادة المحاولة
+          </Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
+  // استخراج تفاصيل الصورة والبيانات الأساسية بشكل آمن لمنع الـ Undefined والانهيار
+  const patientUser = patientData?.user || {};
+  const displayName =
+    patientData?.name || patientUser?.name || "مريض غير معروف";
+  const displayAge = patientData?.age || patientUser?.age || "--";
+  const displayGender =
+    patientData?.gender ||
+    (patientUser?.gender === "FEMALE" ? "أنثى" : "ذكر") ||
+    "غير محدد";
+  const displayBlood = patientData?.bloodType || "--";
+  const displayImage =
+    patientData?.image ||
+    patientData?.photo ||
+    patientData?.photoUrl ||
+    patientUser?.photourl;
+
+  // المؤشرات الحيوية الثابتة للعرض (ويمكن مستقبلاً ربطها بـ API إذا توفر)
   const vitals = [
     {
       id: "1",
@@ -97,7 +254,7 @@ export default function CriticalCondition({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.popToTop()}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-forward" size={24} color="#333" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>المرضى</Text>
@@ -107,14 +264,10 @@ export default function CriticalCondition({ navigation }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {/* Patient Profile */}
         <View style={styles.patientProfile}>
-          {patient?.image || patient?.photo || patient?.photoUrl ? (
-            <Image
-              source={{
-                uri: patient.image || patient.photo || patient.photoUrl,
-              }}
-              style={styles.avatar}
-            />
+          {displayImage ? (
+            <Image source={{ uri: displayImage }} style={styles.avatar} />
           ) : (
             <View
               style={[
@@ -134,16 +287,14 @@ export default function CriticalCondition({ navigation }) {
             </View>
           )}
           <View style={styles.profileText}>
-            <Text style={styles.patientName}>
-              {patient?.name || "عمر فاروق"}
-            </Text>
+            <Text style={styles.patientName}>{displayName}</Text>
             <Text style={styles.patientSubInfo}>
-              {patient?.age || "26"} سنة | {patient?.gender || "ذكر"} | فصيلة
-              الدم : {patient?.bloodType || "+A"}
+              {displayAge} سنة | {displayGender} | فصيلة الدم : {displayBlood}
             </Text>
           </View>
         </View>
 
+        {/* Critical Alert Box */}
         <View style={styles.alertBox}>
           <Text style={styles.alertTitle}>تنبيه طبي</Text>
           <Text style={styles.alertDesc}>
@@ -162,6 +313,7 @@ export default function CriticalCondition({ navigation }) {
           </View>
         </View>
 
+        {/* Vitals Section */}
         <Text style={styles.sectionTitle}>المؤشرات الحيوية</Text>
         <View style={styles.vitalsGrid}>
           {vitals.map((item) => (
@@ -189,26 +341,23 @@ export default function CriticalCondition({ navigation }) {
           ))}
         </View>
 
+        {/* AI Analysis Section */}
         <Text style={styles.sectionTitle}>تحليل الذكاء الاصطناعي</Text>
         <View style={styles.aiContainer}>
-          <View style={styles.aiHeader}>
-            <View style={styles.aiIconCircle}>
-              <Ionicons name="sparkles" size={18} color="#333" />
-            </View>
+          <View style={styles.aiIconCircle}>
+            <Ionicons name="sparkles" size={18} color="#333" />
           </View>
-          <Text style={styles.aiText}>
-            التحاليل تشير إلى أن مستويات الحديد ومخزون الفيريتين مرتفعة جداً،
-            مما يعني وجود تراكم للحديد في الجسم.
-          </Text>
+          <Text style={styles.aiText}>{aiAnalysis}</Text>
         </View>
 
+        {/* Medications Section */}
         <View style={styles.sectionHeaderRow}>
           <TouchableOpacity
             onPress={() =>
               navigation.navigate("MedicationsScreen", {
                 initialMeds: currentMeds,
                 targetScreen: "CriticalCondition",
-                patientId: patient?.id,
+                patientId: patientData?.id,
               })
             }
           >
@@ -218,14 +367,23 @@ export default function CriticalCondition({ navigation }) {
         </View>
 
         <View style={styles.medicationList}>
-          {currentMeds.map((med) => (
-            <View key={med.id} style={styles.medItem}>
-              <Text style={styles.medTime}>{med.dose}</Text>
-              <Text style={styles.medName}>{med.name}</Text>
+          {currentMeds.length > 0 ? (
+            currentMeds.map((med) => (
+              <View key={med.id} style={styles.medItem}>
+                <Text style={styles.medTime}>{med.dose}</Text>
+                <Text style={styles.medName}>{med.name}</Text>
+              </View>
+            ))
+          ) : (
+            <View style={{ paddingVertical: 15, alignItems: "center" }}>
+              <Text style={{ color: "#999", fontSize: 14 }}>
+                لا توجد أدوية مسجلة حالياً لهذا المريض.
+              </Text>
             </View>
-          ))}
+          )}
         </View>
 
+        {/* Test History Section */}
         <Text style={styles.sectionTitle}>سجل التحاليل</Text>
         <View style={styles.testList}>
           <View style={styles.testItem}>
@@ -237,24 +395,21 @@ export default function CriticalCondition({ navigation }) {
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FDFCF8", paddingTop: 30 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    // padding: 20,
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 10,
     backgroundColor: "#FFF",
-    // iOS
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    // Android
     elevation: 4,
-
     borderBottomWidth: 0.2,
     borderBottomColor: "#EEE",
   },
@@ -317,7 +472,6 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     marginBottom: 15,
     borderStartWidth: 4,
-    // elevation: 1,
     shadowColor: "#000",
     shadowOpacity: 0.05,
   },

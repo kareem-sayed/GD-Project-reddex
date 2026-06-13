@@ -14,6 +14,14 @@ export const doctorSignup = (data) => {
 };
 
 /**
+ * تسجيل دخول الطبيب
+ * POST /auth/login
+ */
+export const loginDoctor = (email, password) => {
+  return mainClient.post("/auth/login", { email, password });
+};
+
+/**
  * Fetch current doctor's profile data
  * GET /users/me
  */
@@ -51,9 +59,9 @@ export const getDoctorPatients = () => {
  * Get prescriptions for a specific patient
  * GET /prescriptions/patient/{patientId}
  */
-export const getPatientPrescriptions = (patientId) => {
-  return mainClient.get(`/prescriptions/patient/${patientId}`);
-};
+// export const getPatientPrescriptions = (patientId) => {
+//   return mainClient.get(`/prescriptions/patient/${patientId}`);
+// };
 
 /**
  * Update doctor's user profile
@@ -68,5 +76,55 @@ export const updateDoctorProfile = (userId, data) => {
  * PATCH /doctors/{id}
  */
 export const updateOnlyDoctorData = (doctorId, data) => {
-  return mainClient.patch(`/doctors/${doctorId}`, data);
+  return mainClient.patch(`/doctors/${doctorId}`, data, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+/**
+ * Fetch patients currently followed up by the logged-in doctor
+ * GET /follow-up/doctor/patients
+ */
+export const getFollowUpPatients = () => {
+  return mainClient.get("/follow-up/doctor/patients");
+};
+
+/**
+ * Fetch the latest AI analysis result for a specific patient
+ * GET /results/patient/{userId}
+ */
+export const getPatientAIResults = (userId) => {
+  return mainClient.get(`/results/patient/${userId}`);
+};
+
+/**
+ * Get prescriptions for a specific patient
+ * GET /prescriptions/patient/{patientId}
+ */
+export const getPatientPrescriptions = (patientId) => {
+  return mainClient.get(`/prescriptions/patient/${patientId}`);
+};
+/**
+ * Add a new prescription for a specific patient
+ * POST /prescriptions
+ */
+
+export const addPrescription = (data) => {
+  return mainClient.post("/prescriptions", data);
+};
+/**
+ * Delete a prescription by ID
+ * DELETE /prescriptions/{id}
+ */
+export const deletePrescription = (id) => {
+  return mainClient.delete(`/prescriptions/${id}`);
+};
+/**
+ * Update a prescription by ID
+ * PUT /prescriptions/{id}
+ */
+export const updatePrescription = (id, data) => {
+  return mainClient.put(`/prescriptions/${id}`, data);
 };

@@ -1,651 +1,3 @@
-// import React, { useState } from "react";
-// import {
-//   StyleSheet,
-//   Text,
-//   View,
-//   TextInput,
-//   TouchableOpacity,
-//   ScrollView,
-//   SafeAreaView,
-//   Modal,
-// } from "react-native";
-// import { Ionicons } from "@expo/vector-icons";
-
-// const MedicationsScreen = ({ route, navigation }) => {
-//   // استقبال الأدوية المرسلة، وإذا لم توجد نضع قائمة فارغة كاحتياط
-//   const { initialMeds = [] } = route.params || {};
-
-//   // جعل الـ State تبدأ بالبيانات القادمة من الصفحة السابقة
-//   const [medications, setMedications] = useState(initialMeds);
-//   const [newMedName, setNewMedName] = useState("");
-//   const [newMedDose, setNewMedDose] = useState("");
-//   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-//   const [selectedMedId, setSelectedMedId] = useState(null);
-
-//   // وظيفة الإضافة
-//   const handleAddMedication = () => {
-//     if (newMedName && newMedDose) {
-//       const newMed = {
-//         id: Math.random().toString(),
-//         name: newMedName,
-//         dose: newMedDose,
-//       };
-//       setMedications([...medications, newMed]);
-//       setNewMedName("");
-//       setNewMedDose("");
-//     }
-//   };
-
-//   // فتح مودال الحذف
-//   const openDeleteConfirm = (id) => {
-//     setSelectedMedId(id);
-//     setDeleteModalVisible(true);
-//   };
-
-//   // تنفيذ الحذف
-//   const confirmDelete = () => {
-//     setMedications(medications.filter((m) => m.id !== selectedMedId));
-//     setDeleteModalVisible(false);
-//   };
-
-//   return (
-//     <SafeAreaView style={styles.container}>
-//       {/* Header */}
-//       <View style={styles.header}>
-//         <TouchableOpacity
-//           onPress={() => {
-//             navigation.navigate("CriticalCondition", {
-//               updatedMeds: medications,
-//             });
-//           }}
-//         >
-//           <Ionicons name="arrow-forward" size={24} color="#641919" />
-//         </TouchableOpacity>
-//         <Text style={styles.headerTitle}>الادوية</Text>
-//       </View>
-
-//       <ScrollView
-//         showsVerticalScrollIndicator={false}
-//         contentContainerStyle={styles.content}
-//       >
-        
-//         {/* الأدوية الحالية */}
-//         <Text style={styles.sectionTitle}>الأدوية الحالية</Text>
-//         <View style={styles.medsCard}>
-//           {medications.length > 0 ? (
-//             medications.map((item, index) => (
-//               <View key={item.id || index.toString()}>
-//                 <View style={styles.medRow}>
-//                   {/* أيقونة الحذف على اليسار كما في الصورة */}
-//                   <TouchableOpacity onPress={() => openDeleteConfirm(item.id)}>
-//                     <Ionicons name="trash-outline" size={20} color="#666" />
-//                   </TouchableOpacity>
-
-//                   {/* تفاصيل الدواء */}
-//                   <View style={styles.medInfoContainer}>
-//                      <Text style={styles.medName}>{item.name}</Text>
-//                     <Text style={styles.medDose}>{item.dose}</Text>
-                   
-//                   </View>
-//                 </View>
-
-//                 {index < medications.length - 1 && (
-//                   <View style={styles.divider} />
-//                 )}
-//               </View>
-//             ))
-//           ) : (
-//             <Text style={{ textAlign: "center", color: "#AAA" }}>
-//               لا توجد أدوية حالية
-//             </Text>
-//           )}
-//         </View>
-
-//         {/* إضافة دواء جديد */}
-//         <Text style={[styles.sectionTitle, { marginTop: 30 }]}>
-//           إضافة دواء جديد
-//         </Text>
-
-//         <View style={styles.inputGroup}>
-//           <Text style={styles.label}>اسم الدواء</Text>
-//           <TextInput
-//             placeholder="الاسم"
-//             style={styles.input}
-//             placeholderTextColor="#C4C4C4"
-//             value={newMedName}
-//             onChangeText={setNewMedName}
-//           />
-//         </View>
-
-//         <View style={styles.inputGroup}>
-//           <Text style={styles.label}>الجرعة</Text>
-//           <TextInput
-//             placeholder="الجرعة"
-//             style={styles.input}
-//             placeholderTextColor="#C4C4C4"
-//             value={newMedDose}
-//             onChangeText={setNewMedDose}
-//           />
-//         </View>
-
-//         <TouchableOpacity
-//           style={[
-//             styles.addBtn,
-//             (!newMedName || !newMedDose) && styles.addBtnDisabled,
-//           ]}
-//           onPress={handleAddMedication}
-//           disabled={!newMedName || !newMedDose}
-//         >
-//           <Text style={styles.addBtnText}>إضافة</Text>
-//         </TouchableOpacity>
-//       </ScrollView>
-
-//       {/* مودال الحذف (Pop-up) */}
-//       <Modal
-//         transparent={true}
-//         visible={deleteModalVisible}
-//         animationType="fade"
-//       >
-//         <View style={styles.modalOverlay}>
-//           <View style={styles.modalContent}>
-//             <Text style={styles.modalTitle}>حذف دواء</Text>
-//             <Text style={styles.modalDesc}>
-//               نحذف دواء {medications.find((m) => m.id === selectedMedId)?.name}{" "}
-//               من روشتة المريض ؟
-//             </Text>
-//             <View style={styles.modalButtons}>
-//               <TouchableOpacity
-//                 style={styles.confirmBtn}
-//                 onPress={confirmDelete}
-//               >
-//                 <Text style={styles.confirmBtnText}>اه احذف</Text>
-//               </TouchableOpacity>
-//               <TouchableOpacity
-//                 style={styles.cancelBtn}
-//                 onPress={() => setDeleteModalVisible(false)}
-//               >
-//                 <Text style={styles.cancelBtnText}>لا تحذف</Text>
-//               </TouchableOpacity>
-//             </View>
-//           </View>
-//         </View>
-//       </Modal>
-//     </SafeAreaView>
-//   );
-// };
-// import React, { useState, useEffect } from "react";
-// import {
-//   StyleSheet,
-//   Text,
-//   View,
-//   TextInput,
-//   TouchableOpacity,
-//   ScrollView,
-//   SafeAreaView,
-//   Modal,
-//   ActivityIndicator,
-//   Alert,
-// } from "react-native";
-// import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-
-// // الاستدعاءات الخاصة بالـ APIs المطلوبة للمرحلتين
-// import { getDoctorPatients, getPatientPrescriptions } from "../../../../backEnd/api/services/doctorApi";
-
-// const MedicationsScreen = ({ route, navigation }) => {
-//   const { initialMeds = [], targetScreen = "StableCondition", patientId } = route.params || {};
-
-//   const [patients, setPatients] = useState([]);
-//   const [selectedPatientId, setSelectedPatientId] = useState(patientId || null);
-//   const [medications, setMedications] = useState(initialMeds);
-//   const [loadingPatients, setLoadingPatients] = useState(false);
-//   const [loadingPrescriptions, setLoadingPrescriptions] = useState(false);
-
-//   const [newMedName, setNewMedName] = useState("");
-//   const [newMedDose, setNewMedDose] = useState("");
-//   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-//   const [selectedMedId, setSelectedMedId] = useState(null);
-
-//   // API: Fetch doctor patients
-//   useEffect(() => {
-//     const fetchPatientsList = async () => {
-//       try {
-//         setLoadingPatients(true);
-//         console.log("LOG: Fetching doctor patients...");
-//         const res = await getDoctorPatients();
-//         console.log("LOG: Patients response:", JSON.stringify(res.data, null, 2));
-//         setPatients(res.data || []);
-        
-//         // إذا لم يأتِ معرف مريض محدد من الشاشة السابقة نختار الأول افتراضياً
-//         if (!selectedPatientId && res.data && res.data.length > 0) {
-//           setSelectedPatientId(res.data[0].id);
-//         }
-//       } catch (error) {
-//         console.log("LOG: Error fetching patients inside Medications:", error);
-//         Alert.alert("خطأ", "فشل في تحميل قائمة المرضى.");
-//       } finally {
-//         setLoadingPatients(false);
-//       }
-//     };
-
-//     fetchPatientsList();
-//   }, []);
-
-//   // API: Fetch prescriptions for selected patient
-//   useEffect(() => {
-//     if (!selectedPatientId) return;
-
-//     const fetchPrescriptions = async () => {
-//       try {
-//         setLoadingPrescriptions(true);
-//         console.log(`LOG: Fetching prescriptions for patientId: ${selectedPatientId}...`);
-//         const res = await getPatientPrescriptions(selectedPatientId);
-//         console.log("LOG: Prescriptions response:", JSON.stringify(res.data, null, 2));
-        
-//         // تعيين الأدوية الحية القادمة من الـ API مباشرة
-//         if (res.data) {
-//           setMedications(res.data);
-//         }
-//       } catch (error) {
-//         console.log("LOG: Error fetching prescriptions:", error);
-//         // عدم إظهار التنبيه المزعج إذا كانت الروشتة فارغة بالباك إند وجعلها مصفوفة فارغة
-//         setMedications([]);
-//       } finally {
-//         setLoadingPrescriptions(false);
-//       }
-//     };
-
-//     fetchPrescriptions();
-//   }, [selectedPatientId]);
-
-//   const handleAddMedication = () => {
-//     if (newMedName && newMedDose) {
-//       const newMed = {
-//         id: Math.random().toString(),
-//         name: newMedName,
-//         dose: newMedDose,
-//       };
-//       setMedications([...medications, newMed]);
-//       setNewMedName("");
-//       setNewMedDose("");
-//     }
-//   };
-
-//   const openDeleteConfirm = (id) => {
-//     setSelectedMedId(id);
-//     setDeleteModalVisible(true);
-//   };
-
-//   const confirmDelete = () => {
-//     setMedications(medications.filter((m) => m.id !== selectedMedId));
-//     setDeleteModalVisible(false);
-//   };
-
-//   return (
-//     <SafeAreaView style={styles.container}>
-//       {/* Header */}
-//       <View style={styles.header}>
-//         <TouchableOpacity
-//           onPress={() => {
-//             navigation.navigate(targetScreen, {
-//               updatedMeds: medications,
-//             });
-//           }}
-//         >
-//           <Ionicons name="arrow-forward" size={24} color="#641919" />
-//         </TouchableOpacity>
-//         <Text style={styles.headerTitle}>الادوية</Text>
-//       </View>
-
-//       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        
-//         {/* اختيار المريض الحالي لمتابعة أدويته */}
-//         <Text style={styles.sectionTitle}>اختيار المريض</Text>
-//         {loadingPatients ? (
-//           <ActivityIndicator size="small" color="#641919" style={{ marginVertical: 10 }} />
-//         ) : (
-//           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: "row-reverse", marginBottom: 15 }}>
-//             {patients.map((p) => (
-//               <TouchableOpacity
-//                 key={p.id}
-//                 style={[
-//                   { padding: 10, borderRadius: 20, backgroundColor: "#EAEAEA", marginRight: 8 },
-//                   selectedPatientId === p.id && { backgroundColor: "#641919" }
-//                 ]}
-//                 onPress={() => setSelectedPatientId(p.id)}
-//               >
-//                 <Text style={[{ color: "#000" }, selectedPatientId === p.id && { color: "#FFF" }]}>{p.name}</Text>
-//               </TouchableOpacity>
-//             ))}
-//           </ScrollView>
-//         )}
-
-//         {/* الأدوية الحالية القادمة من الـ API للمريض المختار */}
-//         <Text style={styles.sectionTitle}>الأدوية الحالية</Text>
-        
-//         {loadingPrescriptions ? (
-//           <View style={{ padding: 20 }}>
-//             <ActivityIndicator size="large" color="#641919" />
-//           </View>
-//         ) : (
-//           <View style={styles.medsCard}>
-//             {medications.length > 0 ? (
-//               medications.map((item, index) => (
-//                 <View key={item.id || index.toString()}>
-//                   <View style={styles.medRow}>
-//                     <TouchableOpacity onPress={() => openDeleteConfirm(item.id)}>
-//                       <Ionicons name="trash-outline" size={20} color="#666" />
-//                     </TouchableOpacity>
-
-//                     <View style={styles.medInfoContainer}>
-//                       <Text style={styles.medName}>{item.name}</Text>
-//                       <Text style={styles.medDose}>{item.dose || item.dosage}</Text>
-//                     </View>
-//                   </View>
-
-//                   {index < medications.length - 1 && <View style={styles.divider} />}
-//                 </View>
-//               ))
-//             ) : (
-//               <Text style={{ textAlign: "center", color: "#AAA", paddingVertical: 10 }}>
-//                 لا توجد أدوية مسجلة لهذا المريض حالياً
-//               </Text>
-//             )}
-//           </View>
-//         )}
-
-//         {/* إضافة دواء جديد */}
-//         <Text style={[styles.sectionTitle, { marginTop: 30 }]}>إضافة دواء جديد</Text>
-
-//         <View style={styles.inputGroup}>
-//           <Text style={styles.label}>اسم الدواء</Text>
-//           <TextInput
-//             placeholder="الاسم"
-//             style={styles.input}
-//             placeholderTextColor="#C4C4C4"
-//             value={newMedName}
-//             onChangeText={setNewMedName}
-//           />
-//         </View>
-
-//         <View style={styles.inputGroup}>
-//           <Text style={styles.label}>الجرعة</Text>
-//           <TextInput
-//             placeholder="الجرعة"
-//             style={styles.input}
-//             placeholderTextColor="#C4C4C4"
-//             value={newMedDose}
-//             onChangeText={setNewMedDose}
-//           />
-//         </View>
-
-//         <TouchableOpacity
-//           style={[styles.addBtn, (!newMedName || !newMedDose) && styles.addBtnDisabled]}
-//           onPress={handleAddMedication}
-//           disabled={!newMedName || !newMedDose}
-//         >
-//           <Text style={styles.addBtnText}>إضافة</Text>
-//         </TouchableOpacity>
-//       </ScrollView>
-
-//       {/* مودال تأكيد الحذف */}
-//       <Modal transparent={true} visible={deleteModalVisible} animationType="fade">
-//         <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" }}>
-//           <View style={{ width: 300, backgroundColor: "#FFF", padding: 20, borderRadius: 10, alignItems: "center" }}>
-//             <Text style={{ fontSize: 16, fontWeight: "bold", marginBottom: 20 }}>هل أنت متأكد من حذف هذا الدواء؟</Text>
-//             <View style={{ flexDirection: "row" }}>
-//               <TouchableOpacity style={{ flex: 1, padding: 10, alignItems: "center" }} onPress={() => setDeleteModalVisible(false)}>
-//                 <Text style={{ color: "#666" }}>إلغاء</Text>
-//               </TouchableOpacity>
-//               <TouchableOpacity style={{ flex: 1, padding: 10, alignItems: "center", backgroundColor: "#E63946", borderRadius: 5 }} onPress={confirmDelete}>
-//                 <Text style={{ color: "#FFF" }}>تأكيد الحذف</Text>
-//               </TouchableOpacity>
-//             </View>
-//           </View>
-//         </View>
-//       </Modal>
-//     </SafeAreaView>
-//   );
-// };
-
-// export default MedicationsScreen;
-
-// import React, { useState, useEffect } from "react";
-// import {
-//   StyleSheet,
-//   Text,
-//   View,
-//   TextInput,
-//   TouchableOpacity,
-//   ScrollView,
-//   SafeAreaView,
-//   Modal,
-//   ActivityIndicator,
-//   Alert,
-// } from "react-native";
-// import { Ionicons } from "@expo/vector-icons";
-
-// // API Calls
-// import { getDoctorPatients, getPatientPrescriptions } from "../../../../backEnd/api/services/doctorApi";
-
-// export default function MedicationsScreen({ route, navigation }) {
-//   const { initialMeds = [], targetScreen = "StableCondition", patientId } = route.params || {};
-
-//   const [patients, setPatients] = useState([]);
-//   const [selectedPatientId, setSelectedPatientId] = useState(patientId || null);
-//   const [medications, setMedications] = useState(initialMeds);
-//   const [loadingPatients, setLoadingPatients] = useState(false);
-//   const [loadingPrescriptions, setLoadingPrescriptions] = useState(false);
-
-//   const [newMedName, setNewMedName] = useState("");
-//   const [newMedDose, setNewMedDose] = useState("");
-//   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-//   const [selectedMedId, setSelectedMedId] = useState(null);
-
-//   // API: Fetch doctor patients
-//   useEffect(() => {
-//     const fetchPatientsList = async () => {
-//       try {
-//         setLoadingPatients(true);
-//         console.log("LOG: Fetching doctor patients...");
-//         const res = await getDoctorPatients();
-//         console.log("LOG: Patients response:", JSON.stringify(res.data, null, 2));
-//         setPatients(res.data || []);
-        
-//         // إذا لم يأتِ معرف مريض محدد من الشاشة السابقة نختار الأول افتراضياً
-//         if (!selectedPatientId && res.data && res.data.length > 0) {
-//           setSelectedPatientId(res.data[0].id);
-//         }
-//       } catch (error) {
-//         console.log("LOG: Error fetching patients inside Medications:", error);
-//         Alert.alert("خطأ", "فشل في تحميل قائمة المرضى.");
-//       } finally {
-//         setLoadingPatients(false);
-//       }
-//     };
-
-//     fetchPatientsList();
-//   }, []);
-
-//   // API: Fetch prescriptions for selected patient
-//   useEffect(() => {
-//     if (!selectedPatientId) return;
-
-//     const fetchPrescriptions = async () => {
-//       try {
-//         setLoadingPrescriptions(true);
-//         console.log(`LOG: Fetching prescriptions for patientId: ${selectedPatientId}...`);
-//         const res = await getPatientPrescriptions(selectedPatientId);
-//         console.log("LOG: Prescriptions response:", JSON.stringify(res.data, null, 2));
-        
-//         // تعيين الأدوية الحية القادمة من الـ API مباشرة
-//         if (res.data) {
-//           setMedications(res.data);
-//         }
-//       } catch (error) {
-//         console.log("LOG: Error fetching prescriptions:", error);
-//         // عدم إظهار التنبيه المزعج إذا كانت الروشتة فارغة بالباك إند وجعلها مصفوفة فارغة
-//         setMedications([]);
-//       } finally {
-//         setLoadingPrescriptions(false);
-//       }
-//     };
-
-//     fetchPrescriptions();
-//   }, [selectedPatientId]);
-
-//   const handleAddMedication = () => {
-//     if (newMedName && newMedDose) {
-//       const newMed = {
-//         id: Math.random().toString(),
-//         name: newMedName,
-//         dose: newMedDose,
-//       };
-//       setMedications([...medications, newMed]);
-//       setNewMedName("");
-//       setNewMedDose("");
-//     }
-//   };
-
-//   const openDeleteConfirm = (id) => {
-//     setSelectedMedId(id);
-//     setDeleteModalVisible(true);
-//   };
-
-//   const confirmDelete = () => {
-//     setMedications(medications.filter((m) => m.id !== selectedMedId));
-//     setDeleteModalVisible(false);
-//   };
-
-//   return (
-//     <SafeAreaView style={styles.container}>
-//       {/* Header */}
-//       <View style={styles.header}>
-//         <TouchableOpacity
-//           onPress={() => {
-//             navigation.navigate(targetScreen, {
-//               updatedMeds: medications,
-//             });
-//           }}
-//         >
-//           <Ionicons name="arrow-forward" size={24} color="#641919" />
-//         </TouchableOpacity>
-//         <Text style={styles.headerTitle}>الأدوية</Text>
-//       </View>
-
-//       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        
-//         {/* اختيار المريض الحالي لمتابعة أدويته */}
-//         <Text style={styles.sectionTitle}>اختيار المريض</Text>
-//         {loadingPatients ? (
-//           <ActivityIndicator size="small" color="#641919" style={{ marginVertical: 10 }} />
-//         ) : (
-//           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.patientsScroll}>
-//             {patients.map((p) => (
-//               <TouchableOpacity
-//                 key={p.id}
-//                 style={[
-//                   styles.patientTab,
-//                   selectedPatientId === p.id && styles.patientTabSelected
-//                 ]}
-//                 onPress={() => setSelectedPatientId(p.id)}
-//               >
-//                 <Text style={[styles.patientTabText, selectedPatientId === p.id && styles.patientTabTextSelected]}>
-//                   {p.name}
-//                 </Text>
-//               </TouchableOpacity>
-//             ))}
-//           </ScrollView>
-//         )}
-
-//         {/* الأدوية الحالية القادمة من الـ API للمريض المختار */}
-//         <Text style={styles.sectionTitle}>الأدوية الحالية</Text>
-        
-//         {loadingPrescriptions ? (
-//           <View style={{ padding: 20 }}>
-//             <ActivityIndicator size="large" color="#641919" />
-//           </View>
-//         ) : (
-//           <View style={styles.medsCard}>
-//             {medications.length > 0 ? (
-//               medications.map((item, index) => (
-//                 <View key={item.id || index.toString()}>
-//                   <View style={styles.medRow}>
-//                     <TouchableOpacity onPress={() => openDeleteConfirm(item.id)}>
-//                       <Ionicons name="trash-outline" size={20} color="#666" />
-//                     </TouchableOpacity>
-
-//                     <View style={styles.medInfoContainer}>
-//                       <Text style={styles.medName}>{item.name}</Text>
-//                       <Text style={styles.medDose}>{item.dose || item.dosage}</Text>
-//                     </View>
-//                   </View>
-
-//                   {index < medications.length - 1 && <View style={styles.divider} />}
-//                 </View>
-//               ))
-//             ) : (
-//               <Text style={styles.emptyMedsText}>
-//                 لا توجد أدوية مسجلة لهذا المريض حالياً
-//               </Text>
-//             )}
-//           </View>
-//         )}
-
-//         {/* إضافة دواء جديد */}
-//         <Text style={[styles.sectionTitle, { marginTop: 30 }]}>إضافة دواء جديد</Text>
-
-//         <View style={styles.inputGroup}>
-//           <Text style={styles.label}>اسم الدواء</Text>
-//           <TextInput
-//             placeholder="الاسم"
-//             style={styles.input}
-//             placeholderTextColor="#C4C4C4"
-//             value={newMedName}
-//             onChangeText={setNewMedName}
-//           />
-//         </View>
-
-//         <View style={styles.inputGroup}>
-//           <Text style={styles.label}>الجرعة</Text>
-//           <TextInput
-//             placeholder="الجرعة"
-//             style={styles.input}
-//             placeholderTextColor="#C4C4C4"
-//             value={newMedDose}
-//             onChangeText={setNewMedDose}
-//           />
-//         </View>
-
-//         <TouchableOpacity
-//           style={[styles.addBtn, (!newMedName || !newMedDose) && styles.addBtnDisabled]}
-//           onPress={handleAddMedication}
-//           disabled={!newMedName || !newMedDose}
-//         >
-//           <Text style={styles.addBtnText}>إضافة</Text>
-//         </TouchableOpacity>
-//       </ScrollView>
-
-//       {/* مودال تأكيد الحذف */}
-//       <Modal transparent={true} visible={deleteModalVisible} animationType="fade">
-//         <View style={styles.modalOverlay}>
-//           <View style={styles.modalContainer}>
-//             <Text style={styles.modalTitle}>هل أنت متأكد من حذف هذا الدواء؟</Text>
-//             <View style={styles.modalButtonsRow}>
-//               <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setDeleteModalVisible(false)}>
-//                 <Text style={styles.modalCancelText}>إلغاء</Text>
-//               </TouchableOpacity>
-//               <TouchableOpacity style={styles.modalConfirmBtn} onPress={confirmDelete}>
-//                 <Text style={styles.modalConfirmText}>تأكيد الحذف</Text>
-//               </TouchableOpacity>
-//             </View>
-//           </View>
-//         </View>
-//       </Modal>
-//     </SafeAreaView>
-//   );
-// }
-
-
 import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
@@ -658,19 +10,29 @@ import {
   Modal,
   ActivityIndicator,
   Alert,
-  Platform
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 // API Calls
-import { getDoctorPatients, getPatientPrescriptions } from "../../../../backEnd/api/services/doctorApi";
+import {
+  getDoctorPatients,
+  getPatientPrescriptions,
+  addPrescription,
+  deletePrescription,
+  updatePrescription,
+} from "../../../../backEnd/api/services/doctorApi";
 
 export default function MedicationsScreen({ route, navigation }) {
-  const { initialMeds = [], targetScreen = "StableCondition", patientId } = route.params || {};
+  const {
+    initialMeds = [],
+    targetScreen = "StableCondition",
+    patientId,
+    patient,
+  } = route.params || {};
 
   const [patients, setPatients] = useState([]);
   const [selectedPatientId, setSelectedPatientId] = useState(patientId || null);
-  const [medications, setMedications] = useState(Array.isArray(initialMeds) ? initialMeds : []);
+  const [medications, setMedications] = useState(initialMeds);
   const [loadingPatients, setLoadingPatients] = useState(false);
   const [loadingPrescriptions, setLoadingPrescriptions] = useState(false);
 
@@ -679,101 +41,221 @@ export default function MedicationsScreen({ route, navigation }) {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedMedId, setSelectedMedId] = useState(null);
 
+  const [timesPerDay, setTimesPerDay] = useState([]);
+  const [tempTime, setTempTime] = useState("");
+
+  // العثور على اسم الدواء المحدد حالياً لعرضه في المودال
+  const currentMedication = medications.find((m) => m.id === selectedMedId);
+
   // API: Fetch doctor patients
   useEffect(() => {
-    let isMounted = true;
     const fetchPatientsList = async () => {
       try {
-        if (isMounted) setLoadingPatients(true);
+        setLoadingPatients(true);
+
         console.log("LOG: Fetching doctor patients...");
         const res = await getDoctorPatients();
-        console.log("LOG: Patients response:", JSON.stringify(res?.data, null, 2));
-        
-        // === التعديل الآمن 1 ===
-        const fetchedPatients = res?.data?.data?.data || res?.data?.data || res?.data || [];
-        
-        if (isMounted) {
-          setPatients(Array.isArray(fetchedPatients) ? fetchedPatients : []);
-          
-          // حماية الاختيار التلقائي لأول مريض
-          if (!selectedPatientId && Array.isArray(fetchedPatients) && fetchedPatients.length > 0) {
-            setSelectedPatientId(fetchedPatients[0]?.id || fetchedPatients[0]?._id || null);
+
+        console.log(
+          "LOG: Patients response:",
+          JSON.stringify(res?.data, null, 2),
+        );
+
+        const patientsArray =
+          res?.data?.data?.data || res?.data?.data || res?.data || [];
+
+        if (Array.isArray(patientsArray)) {
+          setPatients(patientsArray);
+          if (!selectedPatientId) {
+            setMedications([]);
+            return;
           }
+        } else {
+          setPatients([]);
         }
       } catch (error) {
         console.log("LOG: Error fetching patients inside Medications:", error);
-        if (isMounted) setPatients([]);
+        Alert.alert("خطأ", "فشل في تحميل قائمة المرضى.");
+        setPatients([]);
       } finally {
-        if (isMounted) setLoadingPatients(false);
+        setLoadingPatients(false);
       }
     };
 
     fetchPatientsList();
-    return () => { isMounted = false; };
   }, []);
 
   // API: Fetch prescriptions for selected patient
-
-  // new useEffect with guard for mock patient IDs to prevent unnecessary API calls and handle empty states gracefully
-useEffect(() => {
-  if (!selectedPatientId) return;
-  
-  // if the selected patient ID is a mock one (e.g., starts with "patient_"), we skip the API call and set medications to an empty array to prevent 400 errors and handle the case gracefully
-  if (selectedPatientId.toString().includes("patient_")) {
-    console.log("LOG: Mock patient selected, skipping API call to prevent 400 error.");
-    setMedications([]); 
-    return;
-  }
-
-  let isMounted = true;
-
   const fetchPrescriptions = async () => {
     try {
-      if (isMounted) setLoadingPrescriptions(true);
-      console.log(`LOG: Fetching prescriptions for patientId: ${selectedPatientId}...`);
+      setLoadingPrescriptions(true);
+
       const res = await getPatientPrescriptions(selectedPatientId);
-      console.log("LOG: Prescriptions response:", JSON.stringify(res?.data, null, 2));
-      
-      const incomingMeds = res?.data?.data?.data || res?.data?.data || res?.data || [];
-      
-      if (isMounted) {
-        setMedications(Array.isArray(incomingMeds) ? incomingMeds : []);
-      }
+      if (!selectedPatientId) return;
+
+      const medsArray =
+        res?.data?.data?.data || res?.data?.data || res?.data || [];
+
+      const normalized = medsArray.map((item) => ({
+        id: item.id,
+        name: item.medicationName,
+        dose: item.instructions,
+      }));
+
+      setMedications(normalized);
     } catch (error) {
-      console.log("LOG: Error fetching prescriptions:", error);
-      if (isMounted) setMedications([]); 
+      console.log(error);
     } finally {
-      if (isMounted) setLoadingPrescriptions(false);
+      setLoadingPrescriptions(false);
     }
   };
+  useEffect(() => {
+    if (selectedPatientId) fetchPrescriptions();
+  }, [selectedPatientId]);
 
-  fetchPrescriptions();
-  return () => { isMounted = false; };
-}, [selectedPatientId]);
-  // function to handle adding a new medication, with trimming and validation to prevent empty entries and ensure clean data
-  const handleAddMedication = () => {
-    if (newMedName.trim() && newMedDose.trim()) {
-      const newMed = {
-        id: Math.random().toString(),
-        name: newMedName.trim(),
-        dose: newMedDose.trim(),
+  // Logic to handle dynamically pushing unique, valid times into array state
+  const handleAddTimeSlot = () => {
+    console.log("ADD TIME CLICKED", tempTime);
+    const isValidTime = /^([01]\d|2[0-3]):[0-5]\d$/.test(tempTime.trim());
+
+    if (!isValidTime) {
+      Alert.alert(
+        "خطأ في الصيغة",
+        "يرجى إدخال الوقت بصيغة 24 ساعة صحيحة (HH:mm) مثل 08:30",
+      );
+      return;
+    }
+
+    if (timesPerDay.includes(tempTime.trim())) {
+      Alert.alert("تنبيه", "هذا الوقت مضاف بالفعل للمواعيد.");
+      return;
+    }
+
+    // Sort times sequentially for cleaner display logic
+    setTimesPerDay((prev) => [...prev, tempTime.trim()].sort());
+    // setTempTime("");
+    // setTimesPerDay((prev) =>
+    //   [...prev, tempTime.trim()].sort((a, b) => {
+    //     const [ah, am] = a.split(":").map(Number);
+    //     const [bh, bm] = b.split(":").map(Number);
+    //     return ah * 60 + am - (bh * 60 + bm);
+    //   }),
+    // );
+    setTimesPerDay([]);
+    setTempTime("");
+  };
+
+  const handleRemoveTimeSlot = (timeToRemove) => {
+    setTimesPerDay((prev) => prev.filter((time) => time !== timeToRemove));
+  };
+
+  const handleAddMedication = async () => {
+    try {
+      if (!selectedPatientId || !newMedName || !newMedDose) return;
+      if (timesPerDay.length === 0) {
+        Alert.alert("مطلوب", "يرجى إضافة موعد جرعة واحد على الأقل.");
+        return;
+      }
+
+      console.log(" [POST] Creating prescription...");
+
+      const payload = {
+        patientId: selectedPatientId,
+        medicationName: newMedName,
+        instructions: newMedDose, // مؤقتًا مستخدمين dose هنا
+        durationInDays: 7,
+        startDate: new Date().toISOString().split("T")[0],
+        timesPerDay, // Passing dynamic local array state
+        timezone: "Africa/Cairo",
       };
-      setMedications((prevMeds) => [...(Array.isArray(prevMeds) ? prevMeds : []), newMed]);
+
+      console.log("Payload Sent:");
+      console.log(JSON.stringify(payload, null, 2));
+
+      const res = await addPrescription(payload);
+
+      console.log("[POST] Response:");
+      console.log(JSON.stringify(res?.data, null, 2));
+      const created = res?.data?.data;
+      if (!created) {
+        Alert.alert("خطأ", "لم يتم إنشاء الدواء بشكل صحيح");
+        return;
+      }
+
+      const newItem = {
+        id: created.id,
+        name: created.medicationName,
+        dose: created.instructions,
+      };
+
+      console.log("New Medication Added:");
+      console.log(newItem);
+
+      // setMedications((prev) => [...prev, newItem]);
+      await fetchPrescriptions();
       setNewMedName("");
       setNewMedDose("");
+    } catch (error) {
+      console.log("STATUS:", error?.response?.status);
+      console.log("DATA:", error?.response?.data);
+      console.log("FULL ERROR:", error);
     }
   };
-
   const openDeleteConfirm = (id) => {
     setSelectedMedId(id);
     setDeleteModalVisible(true);
   };
 
-  const confirmDelete = () => {
-    if (Array.isArray(medications)) {
-      setMedications(medications.filter((m) => m.id !== selectedMedId));
+  const confirmDelete = async () => {
+    try {
+      console.log("[DELETE] ID:", selectedMedId);
+
+      // 1. احذف الأول
+      await deletePrescription(selectedMedId);
+      console.log("🟢 Deleted successfully");
+
+      // 2. بعد الحذف هات الداتا الجديدة
+      const res = await getPatientPrescriptions(selectedPatientId);
+
+      console.log("🔄 [DELETE] Refetched data:");
+      console.log(JSON.stringify(res?.data, null, 2));
+
+      const medsArray =
+        res?.data?.data?.data || res?.data?.data || res?.data || [];
+
+      const normalized = medsArray.map((item) => ({
+        id: item.id,
+        name: item.medicationName,
+        dose: item.instructions,
+      }));
+
+      // setMedications(normalized);
+      // setDeleteModalVisible(false);
+      setSelectedMedId(id);
+      await deletePrescription(id);
+    } catch (error) {
+      console.log(error);
+      Alert.alert("خطأ", "فشل حذف الدواء");
     }
-    setDeleteModalVisible(false);
+  };
+  const handleUpdateMedication = async () => {
+    try {
+      const payload = {
+        patientId: selectedPatientId,
+        medicationName: newMedName,
+        instructions: newMedDose,
+        durationInDays: 7,
+        startDate: "2026-06-12",
+        timesPerDay: ["08:00", "20:00"],
+        timezone: "Africa/Cairo",
+      };
+
+      await updatePrescription(selectedMedId, payload);
+
+      await fetchPrescriptions();
+    } catch (error) {
+      Alert.alert("خطأ", "فشل تعديل الدواء");
+    }
   };
 
   return (
@@ -783,6 +265,7 @@ useEffect(() => {
         <TouchableOpacity
           onPress={() => {
             navigation.navigate(targetScreen, {
+              patient,
               updatedMeds: medications,
             });
           }}
@@ -792,56 +275,38 @@ useEffect(() => {
         <Text style={styles.headerTitle}>الأدوية</Text>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        
-        {/* اختيار المريض الحالي لمتابعة أدويته */}
-        <Text style={styles.sectionTitle}>اختيار المريض</Text>
-        {loadingPatients ? (
-          <ActivityIndicator size="small" color="#641919" style={{ marginVertical: 10 }} />
-        ) : (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.patientsScroll}>
-            {Array.isArray(patients) && patients.map((p) => (
-              <TouchableOpacity
-                key={p.id || Math.random().toString()}
-                style={[
-                  styles.patientTab,
-                  selectedPatientId === p.id && styles.patientTabSelected
-                ]}
-                onPress={() => setSelectedPatientId(p.id)}
-              >
-                <Text style={[styles.patientTabText, selectedPatientId === p.id && styles.patientTabTextSelected]}>
-                  {p.name || "مريض بدون اسم"}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        )}
-
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+      >
         {/* الأدوية الحالية القادمة من الـ API للمريض المختار */}
         <Text style={styles.sectionTitle}>الأدوية الحالية</Text>
-        
+
         {loadingPrescriptions ? (
           <View style={{ padding: 20 }}>
             <ActivityIndicator size="large" color="#641919" />
           </View>
         ) : (
           <View style={styles.medsCard}>
-            {/* === التعديل الآمن 4 (حماية الـ map) === */}
-            {Array.isArray(medications) && medications.length > 0 ? (
+            {medications.length > 0 ? (
               medications.map((item, index) => (
                 <View key={item.id || index.toString()}>
                   <View style={styles.medRow}>
-                    <TouchableOpacity onPress={() => openDeleteConfirm(item.id)}>
+                    <TouchableOpacity
+                      onPress={() => openDeleteConfirm(item.id)}
+                    >
                       <Ionicons name="trash-outline" size={20} color="#666" />
                     </TouchableOpacity>
 
                     <View style={styles.medInfoContainer}>
                       <Text style={styles.medName}>{item.name}</Text>
-                      <Text style={styles.medDose}>{item.dose || item.dosage || "الجرعة غير محددة"}</Text>
+                      <Text style={styles.medDose}>{item.dose}</Text>
                     </View>
                   </View>
 
-                  {index < medications.length - 1 && <View style={styles.divider} />}
+                  {index < medications.length - 1 && (
+                    <View style={styles.divider} />
+                  )}
                 </View>
               ))
             ) : (
@@ -853,7 +318,9 @@ useEffect(() => {
         )}
 
         {/* إضافة دواء جديد */}
-        <Text style={[styles.sectionTitle, { marginTop: 30 }]}>إضافة دواء جديد</Text>
+        <Text style={[styles.sectionTitle, { marginTop: 30 }]}>
+          إضافة دواء جديد
+        </Text>
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>اسم الدواء</Text>
@@ -876,27 +343,96 @@ useEffect(() => {
             onChangeText={setNewMedDose}
           />
         </View>
+        {/* Dynamic Scheduler Section */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>مواعيد الجرعات اليومية</Text>
 
+          <View style={styles.timeInputRow}>
+            <TouchableOpacity
+              style={styles.timeAddBtn}
+              onPress={handleAddTimeSlot}
+            >
+              <Text style={styles.timeAddBtnText}>إضافة وقت</Text>
+            </TouchableOpacity>
+
+            <TextInput
+              placeholder="08:00"
+              style={[styles.input, styles.timeInputSpec]}
+              placeholderTextColor="#C4C4C4"
+              maxLength={5}
+              value={tempTime}
+              onChangeText={setTempTime}
+              keyboardType="numbers-and-punctuation"
+            />
+          </View>
+
+          {/* Dynamic List Render View for Added Times */}
+          {timesPerDay.length > 0 && (
+            <View style={styles.scheduleBadgeContainer}>
+              {timesPerDay.map((time, idx) => (
+                <View key={idx.toString()} style={styles.timeTag}>
+                  <Text style={styles.timeTagText}>{time}</Text>
+                  <TouchableOpacity onPress={() => handleRemoveTimeSlot(time)}>
+                    <Ionicons
+                      name="close-circle"
+                      size={16}
+                      color="#D32F2F"
+                      style={{ marginRight: 4 }}
+                    />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
         <TouchableOpacity
-          style={[styles.addBtn, (!newMedName.trim() || !newMedDose.trim()) && styles.addBtnDisabled]}
+          style={[
+            styles.addBtn,
+            (!newMedName || !newMedDose) && styles.addBtnDisabled,
+          ]}
           onPress={handleAddMedication}
-          disabled={!newMedName.trim() || !newMedDose.trim()}
+          disabled={!newMedName || !newMedDose}
         >
           <Text style={styles.addBtnText}>إضافة</Text>
         </TouchableOpacity>
       </ScrollView>
 
-      {/* مودال تأكيد الحذف */}
-      <Modal transparent={true} visible={deleteModalVisible} animationType="fade">
+      {/* مودال تأكيد الحذف المطور كلياً كبطاقة منبثقة صحية */}
+      <Modal
+        transparent={true}
+        visible={deleteModalVisible}
+        animationType="fade"
+        onRequestClose={() => setDeleteModalVisible(false)}
+      >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>هل أنت متأكد من حذف هذا الدواء؟</Text>
-            <View style={styles.modalButtonsRow}>
-              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setDeleteModalVisible(false)}>
-                <Text style={styles.modalCancelText}>إلغاء</Text>
+          <View style={styles.modalCardContainer}>
+            <View style={styles.modalIconHeader}>
+              <Ionicons name="trash-bin" size={28} color="#D32F2F" />
+            </View>
+
+            <Text style={styles.modalCardTitle}>حذف دواء</Text>
+
+            <Text style={styles.modalCardDesc}>
+              هل أنت متأكد من حذف دواء{" "}
+              <Text style={styles.medHighlight}>
+                [{currentMedication?.name || "هذا الدواء"}]
+              </Text>{" "}
+              ؟
+            </Text>
+
+            <View style={styles.modalCardButtonsRow}>
+              <TouchableOpacity
+                style={styles.modalCardCancelBtn}
+                onPress={() => setDeleteModalVisible(false)}
+              >
+                <Text style={styles.modalCardCancelText}>لا تحذف</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.modalConfirmBtn} onPress={confirmDelete}>
-                <Text style={styles.modalConfirmText}>تأكيد الحذف</Text>
+
+              <TouchableOpacity
+                style={styles.modalCardConfirmBtn}
+                onPress={confirmDelete}
+              >
+                <Text style={styles.modalCardConfirmText}>اه احذف</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -905,6 +441,7 @@ useEffect(() => {
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FDFCF8", paddingTop: 30 },
   header: {
@@ -914,14 +451,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     backgroundColor: "#FFF",
-    // iOS
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    // Android
     elevation: 4,
-
     borderBottomWidth: 0.2,
     borderBottomColor: "#EEE",
   },
@@ -953,11 +487,9 @@ const styles = StyleSheet.create({
   },
   medInfoContainer: {
     flex: 1,
-    flexDirection: "row", 
-    justifyContent: "space-between", 
+    flexDirection: "row",
+    justifyContent: "flex-start",
     alignItems: "center",
-    justifyContent: "flex-start", 
-    // paddingRight: 20, 
   },
   medName: {
     fontSize: 16,
@@ -976,16 +508,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#f7f4f4",
     width: "100%",
   },
-  medDetails: {
-    flex: 1,
-    flexDirection: "row-reverse",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginLeft: 15,
-  },
-  // medName: { fontSize: 16, color: "#333", fontWeight: "500" },
-  // medDose: { fontSize: 12, color: "#AAA" },
-  // divider: { height: 1, backgroundColor: "#EEE", marginVertical: 5 },
   inputGroup: { marginBottom: 20 },
   label: {
     textAlign: "left",
@@ -1014,54 +536,93 @@ const styles = StyleSheet.create({
   },
   addBtnDisabled: { backgroundColor: "#D8C5C5" },
   addBtnText: { color: "#FFF", fontSize: 16, fontWeight: "bold" },
+  emptyMedsText: {
+    textAlign: "center",
+    color: "#888",
+    paddingVertical: 10,
+  },
 
-  // Modal Styles
+  // تصميم المودال العصري الجديد (Card-Style UI)
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.4)",
     justifyContent: "center",
     alignItems: "center",
+    paddingHorizontal: 25,
   },
-  modalContent: {
-    width: "85%",
-    backgroundColor: "#FFF",
-    borderRadius: 20,
-    padding: 25,
-    alignItems: "center",
-  },
-  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
-  modalDesc: {
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-    marginBottom: 25,
-    lineHeight: 22,
-  },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  modalCardContainer: {
     width: "100%",
-  },
-  confirmBtn: {
-    backgroundColor: "#641919",
-    flex: 1,
-    height: 45,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 10,
-  },
-  confirmBtnText: { color: "#FFF", fontWeight: "bold" },
-  cancelBtn: {
+    maxWidth: 340,
     backgroundColor: "#FFF",
-    flex: 1,
-    height: 45,
-    borderRadius: 10,
+    borderRadius: 24,
+    padding: 24,
+    alignItems: "center",
+    // الظلال وأنظمة التباين
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  modalIconHeader: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#FFEBEE",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#641919",
+    marginBottom: 16,
   },
-  cancelBtnText: { color: "#641919", fontWeight: "bold" },
+  modalCardTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#1A1A1A",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  modalCardDesc: {
+    fontSize: 15,
+    color: "#4A4A4A",
+    textAlign: "center",
+    marginBottom: 24,
+    lineHeight: 24,
+  },
+  medHighlight: {
+    fontWeight: "bold",
+    color: "#641919",
+  },
+  modalCardButtonsRow: {
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "space-between",
+  },
+  modalCardCancelBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    marginRight: 12, // مسافة بين الزرين تدعم الـ RTL الطبيعي
+  },
+  modalCardCancelText: {
+    color: "#666",
+    fontWeight: "bold",
+    fontSize: 15,
+  },
+  modalCardConfirmBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#641919", 
+  },
+  modalCardConfirmText: {
+    color: "#FFF",
+    fontWeight: "bold",
+    fontSize: 15,
+  },
 });
-

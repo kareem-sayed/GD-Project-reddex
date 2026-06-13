@@ -44,31 +44,72 @@ export default function DoctorProfileScreen({ navigation }) {
   });
 
   // جلب البيانات من السيرفر
+  // const fetchProfileData = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const response = await getDoctorProfile();
+  //     console.log("PROFILE DATA:", JSON.stringify(response?.data, null, 2));
+
+  //     const serverData = response?.data?.data;
+
+  //     const realDoctorId = serverData.id;
+  //     const realUserId = serverData.userId;
+  //     if (serverData) {
+  //       setUserData({
+  //         id: serverData.user?.id || serverData.user?._id || "",
+  //         name: serverData.user?.name || "عادل حافظ",
+  //         specialty: serverData.specialty || "باطنة",
+  //         experience: serverData.yearsExperience || "10",
+  //         email: serverData.user?.email || "email@domain.com",
+  //         phone: serverData.user?.phone || "01234567899",
+  //         // clinicName: serverData.clinicName || "عيادات الامل",
+  //         // address: serverData.clinicLocation || "شارع الخليفة الظاهر مدينة نصر",
+  //         clinicName: serverData.nameOfClinic || "",
+  //         address: serverData.locationOfClinic || "",
+  //         workingDays: serverData.workdays?.join(" - ") || "",
+  //         price: serverData.price || "200",
+  //         consultation: serverData.consultation || "100",
+  //         workingHours:
+  //           serverData.workingHours || "8:00 مساءاً إلي 9:00 مساءاً",
+  //         // workingDays: serverData.workingDays || "أحد - اثنين - أربع",
+  //         image: serverData.user?.photourl || null,
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.log("LOG: Error fetching doctor profile:", error);
+  //     Alert.alert("خطأ", "فشل في تحميل بيانات الملف الشخصي الحقيقية.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const fetchProfileData = async () => {
     try {
       setLoading(true);
       const response = await getDoctorProfile();
+
       const serverData = response?.data?.data;
+
       if (serverData) {
+        const doctorId = serverData.id || serverData._id;
+
         setUserData({
-          id: serverData.user?.id || serverData.user?._id || "",
-          name: serverData.user?.name || "عادل حافظ",
-          specialty: serverData.specialty || "باطنة",
-          experience: serverData.yearsExperience || "10",
-          email: serverData.user?.email || "email@domain.com",
-          phone: serverData.user?.phone || "01234567899",
-          clinicName: serverData.clinicName || "عيادات الامل",
-          address: serverData.clinicLocation || "شارع الخليفة الظاهر مدينة نصر",
-          price: serverData.price || "200",
-          consultation: serverData.consultation || "100",
-          workingHours: serverData.workingHours || "8:00 مساءاً إلي 9:00 مساءاً",
-          workingDays: serverData.workingDays || "أحد - اثنين - أربع",
+          id: doctorId, 
+          name: serverData.user?.name || "",
+          specialty: serverData.specialty || "",
+          experience: serverData.yearsExperience || "",
+          email: serverData.user?.email || "",
+          phone: serverData.user?.phone || "",
+          clinicName: serverData.nameOfClinic || "",
+          address: serverData.locationOfClinic || "",
+          workingDays: serverData.workdays?.join(" - ") || "",
+          price: serverData.price || "",
+          consultation: serverData.consultation || "",
+          workingHours: serverData.workingHours || "",
           image: serverData.user?.photourl || null,
         });
       }
     } catch (error) {
-      console.log("LOG: Error fetching doctor profile:", error);
-      Alert.alert("خطأ", "فشل في تحميل بيانات الملف الشخصي الحقيقية.");
+      console.log(error);
     } finally {
       setLoading(false);
     }
@@ -78,7 +119,7 @@ export default function DoctorProfileScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       fetchProfileData();
-    }, [])
+    }, []),
   );
 
   return (
@@ -89,7 +130,11 @@ export default function DoctorProfileScreen({ navigation }) {
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <TouchableOpacity onPress={() => setMenuVisible(true)}>
-            <MaterialCommunityIcons name="dots-vertical" size={26} color="black" />
+            <MaterialCommunityIcons
+              name="dots-vertical"
+              size={26}
+              color="black"
+            />
           </TouchableOpacity>
 
           <Text style={styles.headerTitle}>الملف الشخصي</Text>
@@ -113,7 +158,10 @@ export default function DoctorProfileScreen({ navigation }) {
                   style={styles.menuItem}
                   onPress={() => {
                     setMenuVisible(false);
-                    navigation.navigate("EditProfileScreen", { userData });
+                    navigation.navigate("EditProfileScreen", {
+                      userData,
+                      doctorId: serverData.id, // لازم تكون 5
+                    });
                   }}
                 >
                   <Text style={styles.menuText}>تعديل الملف الشخصي</Text>
@@ -153,7 +201,10 @@ export default function DoctorProfileScreen({ navigation }) {
           <ActivityIndicator size="large" color="#641919" />
         </View>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollPadding}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollPadding}
+        >
           {/* Doctor Information */}
           <View style={styles.doctorInfoSection}>
             <View style={styles.ratingContainer}>
@@ -165,13 +216,24 @@ export default function DoctorProfileScreen({ navigation }) {
               <View style={styles.textData}>
                 <Text style={styles.drName}>د . {userData.name}</Text>
                 <Text style={styles.drSubText}>{userData.specialty}</Text>
-                <Text style={styles.drExperience}>+{userData.experience} سنين خبرة</Text>
+                <Text style={styles.drExperience}>
+                  +{userData.experience} سنين خبرة
+                </Text>
               </View>
               {userData.image ? (
-                <Image source={{ uri: userData.image }} style={styles.profileImage} />
+                <Image
+                  source={{ uri: userData.image }}
+                  style={styles.profileImage}
+                />
               ) : (
-                <View style={[styles.profileImage, styles.fallbackAvatarContainer]}>
-                  <MaterialCommunityIcons name="account-circle" size={60} color="#949292" />
+                <View
+                  style={[styles.profileImage, styles.fallbackAvatarContainer]}
+                >
+                  <MaterialCommunityIcons
+                    name="account-circle"
+                    size={60}
+                    color="#949292"
+                  />
                 </View>
               )}
             </View>
@@ -352,7 +414,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     // marginLeft: 10,
     marginRight: 10,
-
   },
   fallbackAvatarContainer: {
     borderWidth: 1,
@@ -360,7 +421,7 @@ const styles = StyleSheet.create({
     // height: 100% ,
     borderColor: "#EEE",
   },
- 
+
   statsRow: {
     flexDirection: "row",
     paddingHorizontal: 16,
