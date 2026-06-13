@@ -96,20 +96,36 @@ export default function ProfileScreen() {
           </Text> 
         </View>
 
-        <View style={styles.card}> 
-          <View style={{ display: "flex", flexDirection: "column", width: "100%" }}> 
-            {medications?.allMedications && medications.allMedications.length > 0 ? (
-              medications.allMedications.map((med, idx) => (
-                <View key={idx} style={styles.textContainer2}>      
-                  <Text style={styles.medicineName}>{med.trim()}</Text>    
-                  <Text style={styles.subText}>1 كبسولة - مرة يوميًا</Text>
+              <View style={styles.card}>
+                  <View >
+                    {medications && medications.allMedications && medications.allMedications.length > 0 ? (
+                      medications.allMedications.map((item, index) => {
+                        
+                        // 1. تحديد اسم الدواء والتعليمات بناءً على نوع الداتا اللي راجعة
+                        const isString = typeof item === 'string';
+                        const medName = isString ? item.trim() : (item?.medicationName?.trim() || 'دواء غير مسجل');
+                        const medInstructions = isString ? 'جرعة غير محددة' : (item?.instructions?.trim() || 'جرعة غير محددة');
+        
+                        return (
+                          <View key={index} style={{ display: "flex", flexDirection: "row", gap: 10, marginBottom: 8, alignItems: 'center' }}>
+                            
+                            <Text style={styles.medicineName}>
+                              {medName}
+                            </Text>
+        
+                            {/* هنعرض التعليمات (الجرعة) لو موجودة أو هنكتب رسالة افتراضية */}
+                            <Text style={styles.subText}>
+                              {medInstructions}
+                            </Text>
+                            
+                          </View>
+                        );
+                      })
+                    ) : (
+                      <Text style={styles.subText}>لا توجد أدوية مسجلة حالياً...</Text>
+                    )}
+                  </View>
                 </View>
-              ))
-            ) : (
-              <Text style={styles.subText}>لا توجد أدوية حالية</Text>
-            )}
-          </View>    
-        </View>
 
         {/* آخر تحاليلك (أول 3 تحاليل) */}
         <View style={styles.textContainer}>
@@ -130,13 +146,13 @@ export default function ProfileScreen() {
                       styles.subText, 
                       { 
                         color: resItem.result?.severity_level === "Severe" ? "#e91e10" : 
-                               resItem.result?.severity_level === "Moderate" ? "#f59e0b" : "#22c417",
+                            resItem.result?.severity_level === "Moderate" ? "#f59e0b" : "#22c417",
                         fontWeight: "bold"
                       }
                     ]}
                   >
                     {resItem.result?.severity_level === "Severe" ? "خطير" : 
-                     resItem.result?.severity_level === "Moderate" ? "متوسط" : "مستقر"}
+                    resItem.result?.severity_level === "Moderate" ? "متوسط" : "مستقر"}
                   </Text>
                 </View>
 

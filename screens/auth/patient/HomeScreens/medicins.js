@@ -23,14 +23,21 @@ export default function Medicins({ navigation }) {
             <View style={styles.card}>    
                 <View style={styles.textContainer2}>
                     {medications && medications.allMedications && medications.allMedications.length > 0 ? (
-                        medications.allMedications.map((item, index) => (
-                            <View key={index} style={styles.medicineRow}>
-                                <Text style={styles.medicineName}>{item.trim()}</Text>
-                                <Text style={styles.subText}>
-                                    1 كبسولة - مرة يوميًا
-                                </Text>
-                            </View> 
-                        ))
+                        medications.allMedications.map((item, index) => {
+                            // 1. فحص نوع الداتا لاستخراج الاسم والجرعة بأمان
+                            const isString = typeof item === 'string';
+                            const medName = isString ? item.trim() : (item?.medicationName?.trim() || 'دواء غير مسجل');
+                            const medInstructions = isString ? 'جرعة غير محددة' : (item?.instructions?.trim() || 'جرعة غير محددة');
+
+                            return (
+                                <View key={index} style={styles.medicineRow}>
+                                    <Text style={styles.medicineName}>{medName}</Text>
+                                    <Text style={styles.subText}>
+                                        {medInstructions}
+                                    </Text>
+                                </View> 
+                            );
+                        })
                     ) : (
                         <Text style={styles.subText}>لا توجد أدوية مسجلة حالياً...</Text>
                     )}

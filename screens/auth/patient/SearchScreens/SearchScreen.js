@@ -28,15 +28,14 @@ const SearchScreen = ({ navigation }) => {
   const [centers, setCenters] = useState([]);
 
   // 1. جلب كل الدكاترة (للبحث)
+  // 1. جلب كل الدكاترة (للبحث)
   const fetchDoctorsData = useCallback(async (query = "") => {
     try {
       const response = await getDoctors(query); 
-
-      // console.log("🔥 Doctors Data from API:", JSON.stringify(response, null, 2));
-      
       const doctorsArray = response?.data || []; 
-      const formattedDoctors = doctorsArray.map((doc) => ({
-        id: doc.id.toString(),
+      
+      return doctorsArray.map((doc) => ({
+        id: doc.id.toString(), // بنسيبه سترينج عشان المقارنة
         name: `د. ${doc?.user?.name || 'طبيب'}`,
         specialty: doc.specialty,
         image: doc?.user?.photourl ? { uri: doc.user.photourl } : { uri: 'https://randomuser.me/api/portraits/men/32.jpg' },
@@ -44,13 +43,11 @@ const SearchScreen = ({ navigation }) => {
         clinicName: doc.nameOfClinic,
         clinicAddress: doc.locationOfClinic,
         workTime: doc.workingHours,
-        // 👈 التعديل الأول: استخدمنا الحالة اللي جاية من الباك إند
         followUpStatus: doc.followUpStatus || 'NOT_FOLLOWED', 
       }));
-
-      setRecommended(formattedDoctors);
     } catch (error) {
       console.log("❌ خطأ في جلب الدكاترة:", error);
+      return [];
     }
   }, []);
 
@@ -60,8 +57,8 @@ const SearchScreen = ({ navigation }) => {
       const response = await getPatientDoctors(); 
       const doctorsArray = response?.data || []; 
 
-      const formattedDoctors = doctorsArray.map((doc) => ({
-        id: doc.id, // 👈 شيلنا الـ toString() عشان يفضل رقم
+      return doctorsArray.map((doc) => ({
+        id: doc.id.toString(), // خليناه سترينج هنا كمان عشان نقارن براحتنا
         name: `د. ${doc?.user?.name || 'طبيب'}`,
         specialty: doc.specialty,
         image: doc?.user?.photourl ? { uri: doc.user.photourl } : { uri: 'https://randomuser.me/api/portraits/men/32.jpg' },
@@ -71,14 +68,13 @@ const SearchScreen = ({ navigation }) => {
         workTime: doc.workingHours,
         followUpStatus: doc.followUpStatus || 'NOT_FOLLOWED', 
       }));
-
-      setFollowedDoctors(formattedDoctors);
     } catch (error) {
       console.log("❌ خطأ في جلب أطباء المريض:", error);
+      return [];
     }
   }, []);
 
-  // 3. جلب بيانات المعامل
+  // 3. جلب بيانات المعامل (زي ما هي)
   const fetchLabsData = useCallback(async (query = "") => {
     try {
       const response = await getLabs(query); 
@@ -101,20 +97,42 @@ const SearchScreen = ({ navigation }) => {
     }
   }, []);
 
-  useEffect(() => {
-    fetchDoctorsData();
-    fetchFollowedDoctorsData();
-    fetchLabsData(); 
-  }, [fetchDoctorsData, fetchFollowedDoctorsData, fetchLabsData]);
+  // 🌟 التعديل السحري: تجميع الداتا وفلترتها مع بعض
+  const loadAllData = useCallback(async (query = "") => {
+    // بنجيب الليستتين في نفس الوقت
+    const [allDoctors, patientDoctors] = await Promise.all([
+      fetchDoctorsData(query),
+      fetchFollowedDoctorsData()
+    ]);
 
+    // نحفظ دكاترة المريض في الـ State
+    setFollowedDoctors(patientDoctors);
+
+    // 👈 الفلترة: بنعدي على كل الدكاترة، وناخد بس اللي "مش موجود" في لستة دكاترة المريض
+    const filteredRecommended = allDoctors.filter(
+      (doctor) => !patientDoctors.some((patientDoc) => patientDoc.id === doctor.id)
+    );
+
+    // نحفظ النتيجة المتفلترة في لستة المقترحات
+    setRecommended(filteredRecommended);
+  }, [fetchDoctorsData, fetchFollowedDoctorsData]);
+
+  // تشغيل الجلب أول مرة
+  useEffect(() => {
+    loadAllData();
+    fetchLabsData(); 
+  }, [loadAllData, fetchLabsData]);
+
+  // تشغيل البحث مع الـ Debounce
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      fetchDoctorsData(searchText);
+      // لما يبحث برضه بيفلتر بناءً على الدكاترة اللي متابع معاهم
+      loadAllData(searchText);
     }, 500);
 
     return () => clearTimeout(delayDebounceFn); 
-  }, [searchText, fetchDoctorsData]);
-
+  }, [searchText, loadAllData]);
+  
   // ==========================================
   // Navigation Handlers 
   // ==========================================

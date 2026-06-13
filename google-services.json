@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "779105368962",
+    "project_id": "reddex-3f071",
+    "storage_bucket": "reddex-3f071.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:779105368962:android:8a0c142298839563fe2d9b",
+        "android_client_info": {
+          "package_name": "com.reddex.reddex"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtFja6z8GzTwU7wI5ihcfxozR2XzVzocE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

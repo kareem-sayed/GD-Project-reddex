@@ -5,6 +5,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { getMyPrescriptions, getPatientProfile, getResults } from "../../../../backEnd/api/services/patientApi";
 import { PatientContext } from "../../../../backEnd/context/PatientContext";
 import { Ionicons } from "@expo/vector-icons";
+import { registerDeviceToken } from "../../../../backEnd/api/services/authApi";
+import { getFCMTokenAsync } from "../../../components/notificationHelper/notificationHelper";
 
 export default function HomeScreen({ navigation }) {
   const {
@@ -34,7 +36,7 @@ export default function HomeScreen({ navigation }) {
     try {
       const data = await getMyPrescriptions(); 
       setMedications(data);
-      console.log("✅ Fetched Medications");
+      console.log("✅ Fetched Medications", data);
     } catch (err) {
       console.error("❌ Medications Error:", err.response?.data || err.message);
     }
@@ -50,16 +52,24 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  useFocusEffect(
+ useFocusEffect(
     useCallback(() => {
       const loadScreenData = async () => {
         setLoading(true);
         try {
+          // الكود القديم بتاعك بيحمل الداتا
           await Promise.all([
             fetchProfile(),
             fetchMedications(),
             fetchResults()
           ]);
+
+          // 🔥 التعديل الجديد: جلب التوكن وإرساله للباك إند
+          const fcmToken = await getFCMTokenAsync();
+          if (fcmToken) {
+            await registerDeviceToken(fcmToken);
+          }
+
         } catch (error) {
           console.error("❌ Error loading screen data:", error.message);
         } finally {
@@ -135,21 +145,35 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.card}>
           <View style={styles.textContainer2}>
             {medications && medications.allMedications && medications.allMedications.length > 0 ? (
-              medications.allMedications.map((item, index) => (
-                <View key={index} style={{ display: "flex", flexDirection: "row", gap: 10 }}>
-                  <Text style={styles.medicineName}>{item.trim()}</Text>
-                  <Text style={styles.subText}>
-                    1 كبسولة - مرة يوميًا
-                  </Text>
-                </View>
-              ))
+              medications.allMedications.map((item, index) => {
+                
+                // 1. تحديد اسم الدواء والتعليمات بناءً على نوع الداتا اللي راجعة
+                const isString = typeof item === 'string';
+                const medName = isString ? item.trim() : (item?.medicationName?.trim() || 'دواء غير مسجل');
+                const medInstructions = isString ? 'جرعة غير محددة' : (item?.instructions?.trim() || 'جرعة غير محددة');
+
+                return (
+                  <View key={index} style={{ display: "flex", flexDirection: "row", gap: 10, marginBottom: 8, alignItems: 'center' }}>
+                    
+                    <Text style={styles.medicineName}>
+                      {medName}
+                    </Text>
+
+                    {/* هنعرض التعليمات (الجرعة) لو موجودة أو هنكتب رسالة افتراضية */}
+                    <Text style={styles.subText}>
+                      {medInstructions}
+                    </Text>
+                    
+                  </View>
+                );
+              })
             ) : (
               <Text style={styles.subText}>لا توجد أدوية مسجلة حالياً...</Text>
             )}
           </View>
 
           <View style={styles.iconContainer}>
-            <Ionicons name="link-outline" size={20} color="#8B6F47" />
+            <Text style={{ fontSize: 20 }}>💊</Text>
           </View>
         </View>
 
@@ -270,7 +294,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: "#F3EDE6",
+   
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 10,

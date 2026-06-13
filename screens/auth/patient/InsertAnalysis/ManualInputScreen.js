@@ -1,15 +1,17 @@
-import { StyleSheet, View, StatusBar, ScrollView, Alert } from 'react-native'
+import { StyleSheet, View, StatusBar, ScrollView, Alert, Text } from 'react-native'
 import React, { useState, useContext } from 'react'
+import * as DocumentPicker from 'expo-document-picker';
 import { SafeAreaView } from 'react-native-safe-area-context'
 import StackHeader from '../../../components/StackHeader'
 import ToggleButtons from '../../../components/Analysis/ToggleButtons'
 import { PatientContext } from '../../../../backEnd/context/PatientContext'
 import InputField from "../../../components/InputField"
 import CustomButton from "../../../components/CustomButton"
-import { manualDiagnosis } from '../../../../backEnd/api/services/aiApi'
+import { manualDiagnosis ,bloodSmearDiagnosis, fusionDiagnosis} from '../../../../backEnd/api/services/aiApi'
+import UploadBlock from '../../../components/UploadBlock'
 
 export default function ManualInputScreen({ navigation }) {
-       
+    
     const { profile } = useContext(PatientContext);
     const [loading, setLoading] = useState(false);
     const [selected, setSelected] = useState("manual");
@@ -17,8 +19,33 @@ export default function ManualInputScreen({ navigation }) {
     const [formData, setFormData] = useState({
         userId:  profile?.user?.id?.toString() || "",
         HGB: "", WBC: "", PLT: "", RBC: "", MCV: "", MCH: "", MCHC: "", HCT: "",
-        NEUT_ABS: "", LYMP_ABS: "", MONO_ABS: "", EOS_ABS: "", BASO_ABS: ""
+        NEUT_ABS: "", LYMP_ABS: "", MONO_ABS: "", EOS_ABS: "", BASO_ABS: "",
+        bloodImage: null,
     });
+
+    const pickDocument = async (fieldName) => {
+            try {
+                const result = await DocumentPicker.getDocumentAsync({
+                    type: ["application/pdf", "image/*"],
+                    copyToCacheDirectory: true,
+                });
+            
+                if (!result.canceled) {
+                    const file = result.assets[0];
+            
+                    setFormData((prev) => ({
+                        ...prev,
+                        [fieldName]: {
+                            uri: file.uri,
+                            name: file.name || `${fieldName}_file.png`,
+                            type: file.mimeType || 'image/png',
+                        },
+                    }));
+                }
+            } catch (error) {
+                console.log("Document error:", error);
+            }
+    };
 
     const fieldsConfig = [
         { key: 'HGB', label: 'HGB' }, { key: 'WBC', label: 'WBC' }, { key: 'PLT', label: 'PLT' },
@@ -36,49 +63,95 @@ export default function ManualInputScreen({ navigation }) {
     };
 
     const handleSendAnalysis = async () => {
-        if (!formData.userId) {
+        const userId = profile?.user?.id?.toString() || "";
+
+        if (!userId) {
             Alert.alert("خطأ", "عفواً، لم يتم العثور على معرف المريض.");
             return;
         }
 
-        setLoading(true);
-        const payload = { ...formData };
+        // 1. فلترة الأرقام الحقيقية (بنتجاهل أي مسافة أو حقل فاضي)
+        const tabularPayload = { userId: userId };
+        let hasTabularData = false;
 
         fieldsConfig.forEach(field => {
-            if (payload[field.key] === "") {
-                delete payload[field.key]; // حذف الحقل الفاضي تماماً ليقوم الـ Agent بالـ Imputation
-            } else {
-                payload[field.key] = Number(payload[field.key]);
+            const val = formData[field.key];
+            if (val !== undefined && val !== null && val.toString().trim() !== "") {
+                tabularPayload[field.key] = Number(val.toString().trim());
+                hasTabularData = true; // لو لقينا رقم واحد على الأقل، بنعتبر إن في داتا مانيوال
             }
         });
 
+        const hasImage = !!formData.bloodImage;
+
+        // 2. التحقق من وجود أي داتا قبل الإرسال
+        if (!hasTabularData && !hasImage) {
+            Alert.alert("تنبيه", "يرجى إدخال بيانات التحليل يدوياً أو رفع صورة الدم.");
+            return;
+        }
+
+        setLoading(true);
+
+        // تجهيز الـ FormData الأساسية (اللي هتحتاجها الصورة والدمج)
+        const dataToSend = new FormData();
+        dataToSend.append("userId", userId);
+
         try {
-            console.log("جاري إرسال البيانات للـ Agent:", payload);
-            const response = await manualDiagnosis(payload);
-            
-            console.log("استجابة الـ AI بنجاح:", response.data);
-            Alert.alert("تم بنجاح", "تم إرسال التحليل واستلام التشخيص بنجاح!");
+            let response;
+
+            // تطبيق الشروط وتوجيه الـ Request بناءً على الـ EndPoint الصح
+            if (hasTabularData && hasImage) {
+                // 1. حالة الـ Fusion (رفع صورة + بيانات يدوية)
+                dataToSend.append("blood_smear_image", formData.bloodImage);
+                
+                // الباك إند في الغالب بيستقبل الأرقام في الدمج كـ JSON String في حقل اسمه tabular_data
+                dataToSend.append("tabular_data", JSON.stringify(tabularPayload));
+                
+                // (احتياطي) بنبعت الأرقام كحقول منفصلة عشان لو الباك إند بيقراها كده
+                Object.keys(tabularPayload).forEach(key => {
+                    dataToSend.append(key, tabularPayload[key]);
+                });
+
+                console.log("الـ EndPoint المحددة: Fusion (Manual + Smear)");
+                response = await fusionDiagnosis(dataToSend);
+
+            } else if (hasTabularData) {
+                // 2. حالة المانيوال فقط (أرقام بدون صورة)
+                console.log("الـ EndPoint المحددة: Manual Diagnosis");
+                // مسار المانيوال مش بيحتاج FormData، بيتبعت JSON عادي جداً
+                response = await manualDiagnosis(tabularPayload);
+
+            } else {
+                // 3. حالة الـ Blood Smear فقط (صورة بدون أرقام)
+                dataToSend.append("blood_smear_image", formData.bloodImage);
+                
+                console.log("الـ EndPoint المحددة: Blood Smear");
+                response = await bloodSmearDiagnosis(dataToSend);
+            }
+
+            console.log("تم استلام النتيجة بنجاح:", response.data);
+            Alert.alert("تم بنجاح", "تم إرسال التحليل وجاري معالجة النتيجة!");
             
             navigation.navigate("AnalysisResultScreen", { result: response.data });
 
-        }catch (error) {
-                console.error("خطأ أثناء الإرسال:", error);
-
-                // السطرين دول هيجيبوا لك الـ URL اللي اتبعث عليه الـ Request بالملّي
-                if (error.config) {
-                    const fullURL = `${error.config.baseURL || ''}${error.config.url || ''}`;
-                    console.log("🔗 الـ URL اللي اتبعث عليه الـ Request هو:", fullURL);
-                }
-
-                const errorMsg = error.response?.data?.message || "حدث خطأ أثناء الاتصال بالخادم، يرجى المحاولة لاحقاً.";
-                Alert.alert("فشل الإرسال", errorMsg);
-            }finally {
-                        setLoading(false);
-                    }
+        } catch (error) {
+            console.error("خطأ أثناء الرفع والتحليل:", error);
+            
+            // سحب رسالة الإيرور التفصيلية من الباك إند عشان نعرف لو في مشكلة
+            const errorDetail = error.response?.data?.detail;
+            const errorMsg = typeof errorDetail === 'string' ? errorDetail : 
+                JSON.stringify(errorDetail) || 
+                error.response?.data?.message || 
+                "حدث خطأ أثناء رفع البيانات، يرجى المحاولة لاحقاً.";
+                
+            Alert.alert("فشل التحليل", errorMsg);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const isFormValid = fieldsConfig.some(field => formData[field.key] !== "");
-
+    // التحقق من صحة الفورم عشان زرار الإرسال
+    const isFormValid = fieldsConfig.some(field => formData[field.key]?.toString().trim() !== "") || formData.bloodImage !== null;
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#FAF7F2" />
@@ -105,15 +178,30 @@ export default function ManualInputScreen({ navigation }) {
                         </View>
                     ))}
 
-                    <View style={styles.buttonBox}>
+                    <View style={styles.textContainer}>
+                        <Text style={styles.sectionTitle}>ارفع صورة مسحة الدم (Blood Smear)</Text> 
+                    </View>
+                    
+                    <View style={styles.UploadContainer}>
+                        <UploadBlock
+                            label=" "
+                            formats="JPG, PNG"
+                            optional
+                            file={formData.bloodImage}
+                            onPress={() => pickDocument("bloodImage")}
+                        />
+                    </View> 
+
+                    
+                </View>
+            </ScrollView>
+            <View style={styles.buttonBox}>
                         <CustomButton
                             title={loading ? "جاري الإرسال..." : "إرسال التحليل"}
                             onPress={handleSendAnalysis}
                             disabled={!isFormValid || loading}
                         />
-                    </View>
-                </View>
-            </ScrollView>
+            </View>
         </SafeAreaView> 
     )
 }
@@ -133,8 +221,25 @@ const styles = StyleSheet.create({
     },
     buttonBox: {
         marginTop: 20,
+        marginBottom: 30,
+        paddingHorizontal: 20,
     },
     inputWrapper: {
         marginBottom: 15,
+    },
+    textContainer: {
+        marginTop: 20,
+        paddingHorizontal: 20,
+        flexDirection: "row",
+    },
+    UploadContainer: {
+        width: "90%", 
+        marginHorizontal: 20,
+        marginTop: 5,
+    },
+    sectionTitle: {
+        fontSize: 17, 
+        color: "#111111", 
+        fontWeight: "bold"
     },
 }) 

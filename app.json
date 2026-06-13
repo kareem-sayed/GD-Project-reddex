@@ -25,15 +25,22 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff",
         "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyAHPZ7-X9y0PyAOwiMNNreB0jYDr18sHW0"
+          "googleMaps": {
+            "apiKey": "AIzaSyAHPZ7-X9y0PyAOwiMNNreB0jYDr18sHW0"
+          }
         }
-      }
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.reddex.reddex",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "87ab17d4-4e36-4695-9b82-9fdd0c75c852"
+      }
     }
   }
 }

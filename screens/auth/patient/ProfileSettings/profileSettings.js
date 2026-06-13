@@ -16,16 +16,30 @@ import StackHeader from "../../../components/StackHeader";
 import {
     AuthContext
 } from "../../../../backEnd/context/AuthContext";
+import { removeDeviceToken } from "../../../../backEnd/api/services/authApi";
+import { getFCMTokenAsync } from "../../../components/notificationHelper/notificationHelper";
 
 export default function ProfileSettings({ navigation }) {  
     const [notifications, setNotifications] = useState(false);
     const { logoutUser } = useContext(AuthContext);
 
-    const handleLogout =
-    async () => {
-    await logoutUser();
-
-    };
+    const handleLogout = async () => {
+  try {
+    console.log("🚪 جاري مسح التوكن قبل تسجيل الخروج...");
+    
+    // الخطوة الأولى: نجيب التوكن من الموبايل
+    const fcmToken = await getFCMTokenAsync();
+    
+    if (fcmToken) {
+      // الخطوة التانية: نبعته للباك إند يتمسح
+      await removeDeviceToken(fcmToken);
+    }
+  } catch (error) {
+    console.log("❌ حصلت مشكلة في مسح التوكن، لكن هنكمل تسجيل الخروج:", error);
+  } finally {
+        await logoutUser();
+  }
+};
     return (
         <SafeAreaView style={styles.container}>
                 <StatusBar barStyle="dark-content" backgroundColor="#FAF7F2" />
