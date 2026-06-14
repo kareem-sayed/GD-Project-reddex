@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { AuthContext } from "../../../../backEnd/context/AuthContext"; // ✅ استيراد الـ AuthContext
+import { removeDeviceToken } from "../../../../backEnd/api/services/authApi";
+import { getFCMTokenAsync } from "../../../components/notificationHelper/notificationHelper";
 
 export default function SettingsScreen({ navigation }) {
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
@@ -23,7 +25,17 @@ export default function SettingsScreen({ navigation }) {
   //   }
   // };
   const handleLogout = async () => {
-    await logoutUser();
+    try {
+      console.log("🚪 جاري مسح توكن الطبيب قبل تسجيل الخروج...");
+      const fcmToken = await getFCMTokenAsync();
+      if (fcmToken) {
+        await removeDeviceToken(fcmToken);
+      }
+    } catch (error) {
+      console.log("❌ حصلت مشكلة في مسح التوكن للطبيب:", error);
+    } finally {
+      await logoutUser();
+    }
   };
   return (
     <SafeAreaView style={styles.container}>

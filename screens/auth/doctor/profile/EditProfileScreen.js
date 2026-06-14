@@ -111,14 +111,40 @@ export default function EditProfileScreen({ route, navigation }) {
           setEmail(serverData.user?.email || "email@domain.com");
           setPhone(serverData.user?.phone || "01234567899");
           setSpecialty(serverData.specialty || "باطنة");
-          setExperience(serverData.yearsExperience || "10");
-          setClinicName(serverData.clinicName || "عيادات الامل");
+          setExperience(String(serverData.yearsExperience || "10"));
+          setClinicName(serverData.nameOfClinic || "عيادات الامل");
           setAddress(
-            serverData.clinicLocation || "شارع الخليفة الظاهر مدينة نصر",
+            serverData.locationOfClinic || "شارع الخليفة الظاهر مدينة نصر",
           );
-          setPrice(serverData.price || "200");
-          setConsultation(serverData.consultation || "100");
+          setPrice(String(serverData.price || "200"));
+          setConsultation(String(serverData.consultation || "100"));
           setImage(serverData.user?.photourl || null);
+
+          // مزامنة الأيام المحددة
+          const reverseDaysMap = {
+            "السبت": "س",
+            "الأحد": "ح",
+            "الإثنين": "ن",
+            "الثلاثاء": "ت",
+            "الأربعاء": "ر",
+            "الخميس": "خ",
+            "الجمعة": "ج",
+          };
+          if (serverData.workdays && Array.isArray(serverData.workdays)) {
+            const mappedDays = serverData.workdays
+              .map((d) => reverseDaysMap[d])
+              .filter(Boolean);
+            setSelectedDays(mappedDays);
+          }
+
+          // مزامنة ساعات العمل
+          if (serverData.workingHours) {
+            const parts = serverData.workingHours.includes(" - ")
+              ? serverData.workingHours.split(" - ")
+              : serverData.workingHours.split(" إلي ");
+            if (parts[0]) setStartTime(parts[0].trim());
+            if (parts[1]) setEndTime(parts[1].trim());
+          }
         }
       } catch (error) {
         console.log(
@@ -173,6 +199,7 @@ export default function EditProfileScreen({ route, navigation }) {
       const formattedDaysArray = selectedDays
         .map((d) => daysMap[d])
         .filter(Boolean);
+      
       const doctorPayload = {
         specialty: specialty,
         yearsExperience: Number(experience),
@@ -180,13 +207,15 @@ export default function EditProfileScreen({ route, navigation }) {
         locationOfClinic: address,
         workingHours: `${startTime} - ${endTime}`,
         workdays: formattedDaysArray,
+        price: Number(price),
+        consultation: Number(consultation),
       };
+
       console.log(
         "LOG: Updating doctor table on /doctors/" + doctorId + " ...",
       );
 
       console.log("DOCTOR PAYLOAD:", JSON.stringify(doctorPayload, null, 2));
-
       console.log("doctorId used:", doctorId);
 
       if (!doctorId) {
@@ -194,11 +223,23 @@ export default function EditProfileScreen({ route, navigation }) {
         return;
       }
 
+      // 1. تحديث بيانات العيادة والتخصص والأسعار
       const response = await updateOnlyDoctorData(doctorId, doctorPayload);
+
+      // 2. تحديث بيانات المستخدم (الاسم، البريد الإلكتروني، رقم التليفون)
+      if (userId) {
+        const userPayload = {
+          name: name,
+          email: email,
+          phone: phone,
+        };
+        console.log("LOG: Updating user profile on /users/" + userId + " ...");
+        await updateDoctorProfile(userId, userPayload);
+      }
 
       console.log("PATCH SUCCESS:", JSON.stringify(response?.data, null, 2));
 
-      Alert.alert("نجاح", "تم تحديث بيانات العيادة والتخصص بنجاح.", [
+      Alert.alert("نجاح", "تم تحديث بيانات الملف الشخصي بنجاح.", [
         { text: "حسناً", onPress: () => navigation.goBack() },
       ]);
     } catch (error) {

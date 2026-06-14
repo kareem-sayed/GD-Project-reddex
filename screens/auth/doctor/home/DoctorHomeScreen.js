@@ -21,6 +21,8 @@ import {
   getPendingFollowUps,
   acceptFollowUpRequest,
 } from "../../../../backEnd/api/services/doctorApi";
+import { registerDeviceToken } from "../../../../backEnd/api/services/authApi";
+import { getFCMTokenAsync } from "../../../components/notificationHelper/notificationHelper";
 
 export default function DoctorHomeScreen({ navigation }) {
   // 1. partient requests 2. doctor profile info 3. loading states for both
@@ -31,8 +33,20 @@ export default function DoctorHomeScreen({ navigation }) {
 
   // fetch doctor profile and pending requests on component mount
   useEffect(() => {
+    const initNotifications = async () => {
+      try {
+        const fcmToken = await getFCMTokenAsync();
+        if (fcmToken) {
+          await registerDeviceToken(fcmToken);
+        }
+      } catch (error) {
+        console.log("LOG: Error registering device token for doctor:", error);
+      }
+    };
+
     fetchDoctorProfile();
     fetchPendingRequests();
+    initNotifications();
   }, []);
 
   const fetchDoctorProfile = async () => {
@@ -157,17 +171,6 @@ export default function DoctorHomeScreen({ navigation }) {
 
     return (
       <View style={styles.header}>
-        {/* bell icon */}
-        <TouchableOpacity
-          style={styles.bellContainer}
-          onPress={() => navigation.navigate("NotificationsScreen")}
-        >
-          <Ionicons name="notifications-outline" size={22} color="#000" />
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>1</Text>
-          </View>
-        </TouchableOpacity>
-
         {/* doctor info + image */}
         <View style={styles.headerRight}>
           {loadingProfile ? (
@@ -304,8 +307,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   header: {
-    flexDirection: "row-reverse",
-    justifyContent: "space-between",
+    flexDirection: "row",
+    justifyContent: "flex-start",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 10,

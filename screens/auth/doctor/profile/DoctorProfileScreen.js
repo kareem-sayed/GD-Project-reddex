@@ -160,7 +160,7 @@ export default function DoctorProfileScreen({ navigation }) {
                     setMenuVisible(false);
                     navigation.navigate("EditProfileScreen", {
                       userData,
-                      doctorId: serverData.id, // لازم تكون 5
+                      doctorId: userData.id, // لازم تكون 5
                     });
                   }}
                 >

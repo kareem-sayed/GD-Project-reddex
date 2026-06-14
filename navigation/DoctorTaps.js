@@ -11,6 +11,7 @@ const Tab = createBottomTabNavigator();
 export default function DoctorTaps() {
   return (
     <Tab.Navigator
+      initialRouteName="Home"
       screenOptions={({ route }) => ({
         tabBarActiveTintColor: "#940e0e",
         tabBarInactiveTintColor: "#1b1515b3",

@@ -61,19 +61,19 @@ export default function TabsNavigation({ navigation }) {
                 </View>
                 ),
 
-                headerRight: () => (
-                <TouchableOpacity onPress={() => navigation.navigate("NotificationsScreen")}>
-                    <View style={{
-                    backgroundColor: '#fafafa',
-                    padding: 10,
-                    borderRadius: 12,
-                    elevation: 6,
-                    marginRight: 15
-                    }}>
-                    <Ionicons name="notifications" size={22} color="#333" />
-                    </View>
-                </TouchableOpacity>
-                ),
+                // headerRight: () => (
+                // <TouchableOpacity onPress={() => navigation.navigate("NotificationsScreen")}>
+                //     <View style={{
+                //     backgroundColor: '#fafafa',
+                //     padding: 10,
+                //     borderRadius: 12,
+                //     elevation: 6,
+                //     marginRight: 15
+                //     }}>
+                //     <Ionicons name="notifications" size={22} color="#333" />
+                //     </View>
+                // </TouchableOpacity>
+                // ),
             }}
         />
 
@@ -85,7 +85,6 @@ export default function TabsNavigation({ navigation }) {
             tabBarLabel: 'حسابي'
     }}
     />
-
 
         </Tab.Navigator>
     );
