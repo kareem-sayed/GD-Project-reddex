@@ -43,6 +43,7 @@ export default function MedicationsScreen({ route, navigation }) {
 
   const [timesPerDay, setTimesPerDay] = useState([]);
   const [tempTime, setTempTime] = useState("");
+  const [duration, setDuration] = useState("");
 
   // العثور على اسم الدواء المحدد حالياً لعرضه في المودال
   const currentMedication = medications.find((m) => m.id === selectedMedId);
@@ -96,11 +97,19 @@ export default function MedicationsScreen({ route, navigation }) {
       const medsArray =
         res?.data?.data?.data || res?.data?.data || res?.data || [];
 
-      const normalized = medsArray.map((item) => ({
-        id: item.id,
-        name: item.medicationName,
-        dose: item.instructions,
-      }));
+      const normalized = medsArray.map((item) => {
+        const rawName = item.medicationName;
+        const name =
+          typeof rawName === "string"
+            ? rawName
+            : rawName?.name || rawName?.en || "دواء غير معروف";
+
+        return {
+          id: item.id,
+          name,
+          dose: item.instructions || "",
+        };
+      });
 
       setMedications(normalized);
     } catch (error) {
@@ -131,17 +140,13 @@ export default function MedicationsScreen({ route, navigation }) {
       return;
     }
 
-    // Sort times sequentially for cleaner display logic
-    setTimesPerDay((prev) => [...prev, tempTime.trim()].sort());
-    // setTempTime("");
-    // setTimesPerDay((prev) =>
-    //   [...prev, tempTime.trim()].sort((a, b) => {
-    //     const [ah, am] = a.split(":").map(Number);
-    //     const [bh, bm] = b.split(":").map(Number);
-    //     return ah * 60 + am - (bh * 60 + bm);
-    //   }),
-    // );
-    setTimesPerDay([]);
+    setTimesPerDay((prev) =>
+      [...prev, tempTime.trim()].sort((a, b) => {
+        const [ah, am] = a.split(":").map(Number);
+        const [bh, bm] = b.split(":").map(Number);
+        return ah * 60 + am - (bh * 60 + bm);
+      }),
+    );
     setTempTime("");
   };
 
@@ -163,7 +168,7 @@ export default function MedicationsScreen({ route, navigation }) {
         patientId: selectedPatientId,
         medicationName: newMedName,
         instructions: newMedDose, // مؤقتًا مستخدمين dose هنا
-        durationInDays: 7,
+        durationInDays: Number(duration) || 7,
         startDate: new Date().toISOString().split("T")[0],
         timesPerDay, // Passing dynamic local array state
         timezone: "Africa/Cairo",
@@ -191,10 +196,11 @@ export default function MedicationsScreen({ route, navigation }) {
       console.log("New Medication Added:");
       console.log(newItem);
 
-      // setMedications((prev) => [...prev, newItem]);
       await fetchPrescriptions();
       setNewMedName("");
       setNewMedDose("");
+      setTimesPerDay([]);
+      setDuration("");
     } catch (error) {
       console.log("STATUS:", error?.response?.status);
       console.log("DATA:", error?.response?.data);
@@ -210,29 +216,12 @@ export default function MedicationsScreen({ route, navigation }) {
     try {
       console.log("[DELETE] ID:", selectedMedId);
 
-      // 1. احذف الأول
       await deletePrescription(selectedMedId);
-      console.log("🟢 Deleted successfully");
+      console.log("Deleted successfully");
 
-      // 2. بعد الحذف هات الداتا الجديدة
-      const res = await getPatientPrescriptions(selectedPatientId);
-
-      console.log("🔄 [DELETE] Refetched data:");
-      console.log(JSON.stringify(res?.data, null, 2));
-
-      const medsArray =
-        res?.data?.data?.data || res?.data?.data || res?.data || [];
-
-      const normalized = medsArray.map((item) => ({
-        id: item.id,
-        name: item.medicationName,
-        dose: item.instructions,
-      }));
-
-      // setMedications(normalized);
-      // setDeleteModalVisible(false);
-      setSelectedMedId(id);
-      await deletePrescription(id);
+      await fetchPrescriptions();
+      setDeleteModalVisible(false);
+      setSelectedMedId(null);
     } catch (error) {
       console.log(error);
       Alert.alert("خطأ", "فشل حذف الدواء");
@@ -240,19 +229,29 @@ export default function MedicationsScreen({ route, navigation }) {
   };
   const handleUpdateMedication = async () => {
     try {
+      if (!selectedPatientId || !newMedName || !newMedDose) return;
+      if (timesPerDay.length === 0) {
+        Alert.alert("مطلوب", "يرجى إضافة موعد جرعة واحد على الأقل.");
+        return;
+      }
+
       const payload = {
         patientId: selectedPatientId,
         medicationName: newMedName,
         instructions: newMedDose,
         durationInDays: 7,
-        startDate: "2026-06-12",
-        timesPerDay: ["08:00", "20:00"],
+        startDate: new Date().toISOString().split("T")[0],
+        timesPerDay,
         timezone: "Africa/Cairo",
       };
 
       await updatePrescription(selectedMedId, payload);
 
       await fetchPrescriptions();
+      setNewMedName("");
+      setNewMedDose("");
+      setTimesPerDay([]);
+      setSelectedMedId(null);
     } catch (error) {
       Alert.alert("خطأ", "فشل تعديل الدواء");
     }
@@ -343,6 +342,19 @@ export default function MedicationsScreen({ route, navigation }) {
             onChangeText={setNewMedDose}
           />
         </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>مدة العلاج (بالأيام)</Text>
+          <TextInput
+            placeholder="7"
+            style={styles.input}
+            placeholderTextColor="#C4C4C4"
+            value={duration}
+            onChangeText={setDuration}
+            keyboardType="numeric"
+          />
+        </View>
+
         {/* Dynamic Scheduler Section */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>مواعيد الجرعات اليومية</Text>

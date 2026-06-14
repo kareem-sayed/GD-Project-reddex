@@ -39,8 +39,8 @@ import TabsNavigation from "./navigation/TabsNavigation";
 import DoctorDetailsScreen from "./screens/auth/patient/SearchScreens/DoctorDetailsScreen";
 import LabsDetailsScreen from "./screens/auth/patient/SearchScreens/LabsDetailsScreen";
 
-import Medicins from "./screens/auth/patient/HomeScreens/medicins";
-import ChatScreen from "./screens/auth/patient/chatScreen/ChatScreen";
+import Medicins from "./screens/auth/patient/HomeScreens/Medicins";
+import ChatScreen from "./screens/auth/patient/ChatScreen/ChatScreen";
 
 import UploadFileScreen from "./screens/auth/patient/InsertAnalysis/UploadFileScreen";
 import ManualInputScreen from "./screens/auth/patient/InsertAnalysis/ManualInputScreen";

@@ -54,13 +54,13 @@ const InputField = ({
 
 export default function EditProfileScreen({ route, navigation }) {
   const { userData } = route.params || {};
-  const { doctorId } = route.params;
+  const doctorIdParam = route?.params?.doctorId;
 
   const [menuVisible, setMenuVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState(userData?.id || "");
 
-  // const [doctorId, setDoctorId] = useState(null);
+  const [doctorId, setDoctorId] = useState(doctorIdParam || "");
 
   // --- States ---
   const [name, setName] = useState(userData?.name || "عادل حافظ");
